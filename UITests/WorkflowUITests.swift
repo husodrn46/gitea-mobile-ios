@@ -128,13 +128,35 @@ final class WorkflowUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Bu akışı telefonda deneyelim."].waitForExistence(timeout:5))
         shot("11-konu-bildirimi")
     }
+    func testPRDetailsDisclosurePreservesRecords() {
+        launch();project()
+        app.staticTexts["Mobil inceleme akışı"].firstMatch.tap()
+        XCTAssertTrue(app.staticTexts["nextActionTitle"].waitForExistence(timeout:5))
+        app.swipeUp()
+        XCTAssertTrue(app.staticTexts["prChecksDetails"].waitForExistence(timeout:5))
+        shot("15-pr-ayrintilari-kapali")
+        app.staticTexts["prChecksDetails"].tap()
+        app.swipeUp()
+        XCTAssertTrue(app.staticTexts["CI / fast"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.staticTexts["Kaynaklar incelendi."].exists)
+        shot("16-pr-ayrintilari-acik")
+        app.swipeDown()
+        app.staticTexts["prChecksDetails"].tap()
+        app.swipeDown()
+        app.buttons["prFilesShortcut"].tap()
+        XCTAssertTrue(app.staticTexts["App.swift"].waitForExistence(timeout:5))
+    }
     func testProjectAccentPersists() {
         launch();project()
+        shot("14-proje-bilgileri-kapali")
+        app.staticTexts["projectInformation"].tap()
+        XCTAssertTrue(app.staticTexts["ornek/mobile"].exists)
         app.buttons["projectAccent"].tap()
         app.buttons["Nane"].tap()
         XCTAssertTrue(app.buttons["projectAccent"].label.contains("Nane"))
         shot("12-proje-rengi")
         app.terminate();launch();project()
+        app.staticTexts["projectInformation"].tap()
         XCTAssertTrue(app.buttons["projectAccent"].label.contains("Nane"))
     }
     func testLargeTextAndDarkProjectAccent() {

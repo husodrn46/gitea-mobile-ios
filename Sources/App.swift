@@ -249,6 +249,7 @@ struct ProjectsView: View {
 struct ProjectDetail: View {
     let project: Project
     @EnvironmentObject var workspace: Workspace
+    @State private var informationExpanded = false
     @State private var pulls: [PullRequest] = []
     @State private var listResult: ReadResult<PullListSnapshot>?
     @State private var ideaShown = false
@@ -260,7 +261,17 @@ struct ProjectDetail: View {
         ScrollView {
             VStack(alignment:.leading,spacing:18) {
                 Text(project.summary).foregroundStyle(.secondary)
-                ProjectAccentPicker(project:project)
+                DisclosureGroup(isExpanded:$informationExpanded) {
+                    VStack(alignment:.leading,spacing:12) {
+                        Text(project.fullName).font(.subheadline.monospaced()).textSelection(.enabled)
+                        Label(project.isPrivate ? "Özel depo" : "Herkese açık depo",systemImage:project.isPrivate ? "lock" : "globe").font(.subheadline).foregroundStyle(.secondary)
+                        if !project.language.isEmpty { Text("Dil: " + project.language).font(.subheadline).foregroundStyle(.secondary) }
+                        Divider()
+                        ProjectAccentPicker(project:project)
+                    }.padding(.top,8).padding(.bottom,6)
+                } label: {
+                    Label("Proje bilgileri",systemImage:"info.circle").font(.subheadline.weight(.semibold)).accessibilityIdentifier("projectInformation")
+                }.disclosureGroupStyle(QuietDisclosureStyle()).accessibilityElement(children:.contain)
                 if workspace.live { NavigationLink { IssueListView(project:project) } label: { Label("Konular",systemImage:"bubble.left.and.bubble.right") }.buttonStyle(.glass).accessibilityIdentifier("projectIssues") }
                 Text("Açık PR’lar").font(.title2.bold())
                 if let listResult { FreshnessView(date:listResult.value.fetchedAt,cached:listResult.cached,note:listResult.note) }

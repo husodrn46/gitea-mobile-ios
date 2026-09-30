@@ -1,5 +1,11 @@
 # Doğrulama — 30 Eylül 2026
 
+## Küçük ayrıntı grupları — 30 Eylül 2026
+
+Proje bilgilerinde tam depo adı, görünürlük, dil ve mevcut renk seçimi açılır alanda toplandı. PR ekranında test/inceleme sayıları kapalı başlıkta, mevcut kayıtlar ve alınmış yazar/head/base commit bilgileri açıldığında gösteriliyor. Bekleme özeti görünür kaldı. PR sekmelerinin fazla cam yüzeyi kaldırıldı; kayan içerik sekmelerin altında okunurluğu bozmuyor. API veya hesap veri modeli değişmedi.
+
+Üç seçili simülatör akışı geçti: proje renginin yeniden açılışta korunması, PR ayrıntılarını açma/kapama ve dosyalara geçiş, büyük yazı/koyu temada proje-konular navigasyonu. Görsel zemin düzeltmesinden sonra PR akışı tekrar geçti. Ekran görüntüleri incelendi. Kanıt: `/private/tmp/gitea-details-20260930.xcresult` ve `/private/tmp/gitea-details-final-20260930.xcresult`. Sentetik API ile simülatör doğrulamasıdır; gerçek sunucu veya fiziksel cihaz doğrulaması değildir. Birim testleri bu sunum değişikliği için tekrar koşulmadı.
+
 ## Tasarım sadeleştirme — 30 Eylül 2026
 
 Yalnız mevcut ekran sunumu değişti. API, kimlik doğrulama, önbellek, yazma doğrulaması ve fikir saklama modeli değiştirilmedi.

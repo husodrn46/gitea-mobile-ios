@@ -29,3 +29,11 @@ Kullanıcının kendi Gitea sunucusundaki depolarını, konularını ve PR incel
 ## Kabul ölçütü
 
 Temiz kurulum hiçbir kişisel sunucuya kendiliğinden bağlanmaz. Aynı sunucuda iki kullanıcı birbirinin anahtarını veya önbelleğini kullanamaz. Çevrimdışı içerik güncelmiş gibi gösterilmez. Yazma başarısı gerçek sunucu makbuzuyla doğrulanır; belirsiz istekler yeniden gönderilmez.
+
+## Gitea içeriği kapsamı
+
+Hedef, farklı kullanıcıların kendi sunucularındaki Gitea içeriğine düzenli bölümlerden erişebilmesi. Ekran sadeleştirmesi bütün Gitea özelliklerinin desteklendiği anlamına gelmez.
+
+- Mevcut: depoların listesi ve temel bilgileri, açık PR’lar, PR açıklaması/konuşması, test ve inceleme kayıtları, değişen dosyalar ve kod farkı, konular/yorumlar, bildirimler.
+- Sonraki kapsam: depo dosya ağacı ve README; dallar/etiketler ve commit geçmişi; sürümler/ekler; milestone ve etiket listeleri; wiki, Actions ve paketler.
+- Her bölüm kendi alanında açılacak; ana ekranlara bütün ayrıntılar yığılmayacak. Sunucu sürümü, etkin özellikler ve kullanıcının yetkileri göz önünde bulundurulacak. Bu maddeler henüz uygulanmış veya gerçek sunucuda doğrulanmış değildir.

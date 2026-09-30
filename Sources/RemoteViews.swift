@@ -47,6 +47,7 @@ struct RemotePRView: View {
     @State private var loading = false
     @State private var section = "Açıklama"
     @State private var baseChanged = false
+    @State private var checksExpanded = false
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:22) {
@@ -80,25 +81,39 @@ struct RemotePRView: View {
                     } else {
                     Text("PR açıklaması").font(.title2.bold())
                     IssueMarkdown(text:snapshot.metadata.body?.isEmpty == false ? snapshot.metadata.body! : "Açıklama eklenmemiş.")
-                    Text("Commit: " + String(snapshot.metadata.head.sha.prefix(10))).font(.caption.monospaced()).foregroundStyle(.secondary)
-                    Text("Test durumları").font(.title2.bold())
-                    if snapshot.latestStatuses.isEmpty { Text("Bu commit için test durumu bildirilmemiş. Başarılı sayılmaz.").foregroundStyle(.secondary) }
-                    ForEach(snapshot.latestStatuses) { status in
-                        Surface { VStack(alignment:.leading,spacing:8) { HStack { Text(status.context).font(.headline); Spacer(); Text(status.label).font(.caption).foregroundStyle(status.status == "success" ? Color.success : Color.waiting) }; if let text = status.description { Text(text).font(.subheadline).foregroundStyle(.secondary) } } }
-                    }
-                    Text("İncelemeler").font(.title2.bold())
-                    if snapshot.reviews.isEmpty { Text("Henüz inceleme yok.").foregroundStyle(.secondary) }
-                    ForEach(snapshot.reviews.sorted { $0.id > $1.id }) { review in
-                        Surface {
-                            VStack(alignment:.leading,spacing:8) {
-                                Text(review.user?.login ?? "Ekip incelemesi").font(.headline)
-                                Text(review.label).font(.subheadline)
-                                Text(review.isCurrent(snapshot.metadata.head.sha) ? "Bu commit için · Kaynak: Gitea" : "Güncel onay sayılmaz · Eski, geri çekilmiş veya commit bilgisi eksik")
-                                    .font(.caption).foregroundStyle(.secondary)
-                                if let body = review.body,!body.isEmpty { Text(body).font(.subheadline).textSelection(.enabled) }
+                    DisclosureGroup(isExpanded:$checksExpanded) {
+                        VStack(alignment:.leading,spacing:14) {
+                            Text("Test durumları").font(.headline)
+                            if snapshot.latestStatuses.isEmpty { Text("Bu commit için test durumu bildirilmemiş. Başarılı sayılmaz.").foregroundStyle(.secondary) }
+                            ForEach(snapshot.latestStatuses) { status in
+                                Surface { VStack(alignment:.leading,spacing:8) { HStack { Text(status.context).font(.headline); Spacer(); Text(status.label).font(.caption).foregroundStyle(status.status == "success" ? Color.success : Color.waiting) }; if let text = status.description { Text(text).font(.subheadline).foregroundStyle(.secondary) } } }
                             }
+                            Text("İncelemeler").font(.headline)
+                            if snapshot.reviews.isEmpty { Text("Henüz inceleme yok.").foregroundStyle(.secondary) }
+                            ForEach(snapshot.reviews.sorted { $0.id > $1.id }) { review in
+                                Surface {
+                                    VStack(alignment:.leading,spacing:8) {
+                                        Text(review.user?.login ?? "Ekip incelemesi").font(.headline)
+                                        Text(review.label).font(.subheadline)
+                                        Text(review.isCurrent(snapshot.metadata.head.sha) ? "Bu commit için · Kaynak: Gitea" : "Güncel onay sayılmaz · Eski, geri çekilmiş veya commit bilgisi eksik")
+                                            .font(.caption).foregroundStyle(.secondary)
+                                        if let body = review.body,!body.isEmpty { Text(body).font(.subheadline).textSelection(.enabled) }
+                                    }
+                                }
+                            }
+                        Divider()
+                        VStack(alignment:.leading,spacing:6) {
+                            Text("Açan: " + snapshot.metadata.user.login).font(.subheadline)
+                            Text("Commit: " + snapshot.metadata.head.sha).font(.caption.monospaced()).textSelection(.enabled)
+                            Text("Taban commit: " + snapshot.metadata.base.sha).font(.caption.monospaced()).textSelection(.enabled)
+                        }.foregroundStyle(.secondary)
+                        }.padding(.top,10)
+                    } label: {
+                        VStack(alignment:.leading,spacing:4) {
+                            Label("Kontroller ve incelemeler",systemImage:"checklist").font(.subheadline.weight(.semibold)).accessibilityIdentifier("prChecksDetails")
+                            Text("\(snapshot.latestStatuses.count) test kaydı · \(snapshot.reviews.count) inceleme").font(.caption).foregroundStyle(.secondary)
                         }
-                    }
+                    }.disclosureGroupStyle(QuietDisclosureStyle()).accessibilityElement(children:.contain)
                     }
                     Text("Bunlar alınan test ve inceleme kayıtlarıdır. Dal koruması ve tüm birleştirme koşulları doğrulanmadığından hazır etiketi üretilmez.").font(.footnote).foregroundStyle(.secondary)
                 }
@@ -110,7 +125,7 @@ struct RemotePRView: View {
                     Text("Açıklama").tag("Açıklama")
                     Text("Konuşma").tag("Konuşma")
                     Text("Dosyalar").tag("Dosyalar")
-                }.pickerStyle(.segmented).padding(6).glassEffect(.regular,in:RoundedRectangle(cornerRadius:18)).padding(.horizontal,22).accessibilityIdentifier("prSections")
+                }.pickerStyle(.segmented).padding(.horizontal,22).padding(.vertical,8).background(Color.canvas).accessibilityIdentifier("prSections")
             }
             .toolbar(.hidden,for:.tabBar).task(id:workspace.identity?.scope) { await load() }.refreshable { await load() }
     }

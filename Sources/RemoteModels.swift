@@ -166,7 +166,18 @@ struct SnapshotStore {
     }
 }
 struct CatalogSnapshot: Codable { let projects: [Project]; let fetchedAt: Date }
-struct PullListSnapshot: Codable { let pulls: [PullRequest]; let fetchedAt: Date }
+struct PullListSnapshot: Codable {
+    let pulls: [PullRequest]
+    let fetchedAt: Date
+    var lastPage: Int? = nil
+    var moreAvailable: Bool? = nil
+    var hasMore: Bool { moreAvailable ?? (pulls.count >= 50) }
+    var nextPage: Int { (lastPage ?? 1) + 1 }
+    func appending(_ page: PullListSnapshot) -> PullListSnapshot {
+        var seen = Set(pulls.map(\.id))
+        return PullListSnapshot(pulls:pulls + page.pulls.filter { seen.insert($0.id).inserted },fetchedAt:fetchedAt,lastPage:page.lastPage,moreAvailable:page.moreAvailable)
+    }
+}
 struct ReadResult<Value> {
     let value: Value
     let cached: Bool

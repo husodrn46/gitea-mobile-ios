@@ -53,7 +53,7 @@ final class GiteaClient: @unchecked Sendable {
         guard let owner = String(parts[0]).addingPercentEncoding(withAllowedCharacters:allowed),let name = String(parts[1]).addingPercentEncoding(withAllowedCharacters:allowed) else { throw ClientError.message("Depo adresi okunamadı.") }
         return "/repos/\(owner)/\(name)/pulls"
     }
-    func data(_ path: String, query: [URLQueryItem] = [], origin: URL, token: String, accept: String = "application/json") async throws -> Data {
+    func responseData(_ path: String, query: [URLQueryItem] = [], origin: URL, token: String, accept: String = "application/json") async throws -> (Data,HTTPURLResponse) {
         var parts = URLComponents(url:origin,resolvingAgainstBaseURL:false)!
         parts.path = "/api/v1" + path; parts.queryItems = query.isEmpty ? nil : query
         // repositoryPath returns escaped segments: retain the escaping exactly once.
@@ -75,7 +75,10 @@ final class GiteaClient: @unchecked Sendable {
             guard data.count < 4_194_304 else { throw ClientError.message("Sunucu yanıtı bu ekran için fazla büyük.") }
             data.append(byte)
         }
-        return data
+        return (data,http)
+    }
+    func data(_ path: String,query: [URLQueryItem] = [],origin: URL,token: String,accept: String = "application/json") async throws -> Data {
+        try await responseData(path,query:query,origin:origin,token:token,accept:accept).0
     }
     func read<T: Decodable>(_ path: String, query: [URLQueryItem] = [], origin: URL, token: String) async throws -> T {
         let data = try await data(path,query:query,origin:origin,token:token)
@@ -132,14 +135,29 @@ final class GiteaClient: @unchecked Sendable {
         }
         throw ClientError.message("1.000'den fazla depo var; bu sürüm bütün listeyi yükleyemiyor.")
     }
-    func pulls(project: Project,origin: URL,token: String) async throws -> [PullRequest] {
-        let rows: [GiteaPull] = try await read(Self.repositoryPath(project.fullName),query:[.init(name:"state",value:"open"),.init(name:"limit",value:"50")],origin:origin,token:token)
-        return rows.map { row in
-            let candidate = row.html_url.flatMap(URL.init(string:))
-            let url = candidate?.scheme == "https" && candidate?.host == origin.host && candidate?.port == origin.port && candidate?.user == nil && candidate?.password == nil ? candidate : nil
-            return PullRequest(id:row.number,title:row.title,project:project,author:row.user.login,body:row.body ?? "",isDemo:false,url:url)
-        }
+    func pulls(project: Project,origin: URL,token: String,page: Int = 1) async throws -> [PullRequest] {
+        try await pullPage(project:project,origin:origin,token:token,page:page).pulls
     }
+    func pullPage(project: Project,origin: URL,token: String,page: Int = 1) async throws -> PullListSnapshot {
+        guard page > 0 else { throw ClientError.message("Geçersiz PR sayfası.") }
+        let (data,response) = try await responseData(Self.repositoryPath(project.fullName),query:[.init(name:"state",value:"open"),.init(name:"limit",value:"50"),.init(name:"page",value:String(page))],origin:origin,token:token)
+        let rows: [GiteaPull]
+        do { rows = try JSONDecoder().decode([GiteaPull].self,from:data) } catch { throw ClientError.message("Sunucu Gitea biçiminde yanıt vermedi.") }
+        let pulls = rows.map { row in
+            PullRequest(id:row.number,title:row.title,project:project,author:row.user.login,body:row.body ?? "",isDemo:false,url:Self.safeLink(row.html_url,origin:origin))
+        }
+        // Gitea's Link header reflects its effective page size. Without pagination
+        // metadata, only an empty page proves completion (servers can cap limit).
+        let link = response.value(forHTTPHeaderField:"Link")
+        let total = response.value(forHTTPHeaderField:"X-Total-Count").flatMap(Int.init)
+        let hasMore: Bool
+        if rows.isEmpty { hasMore = false }
+        else if let link { hasMore = link.contains("rel=\"next\"") || link.contains("rel=next") }
+        else if let total,total <= rows.count,page == 1 { hasMore = false }
+        else { hasMore = true }
+        return PullListSnapshot(pulls:pulls,fetchedAt:Date(),lastPage:page,moreAvailable:hasMore)
+    }
+
 }
 enum TokenVault {
     static let service = "com.husodrn46.kisiselgitea.token"

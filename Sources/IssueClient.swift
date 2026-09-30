@@ -72,20 +72,23 @@ extension Workspace {
     func freshIssue(_ project: Project,number: Int) async throws -> GiteaIssue {
         guard !offlineOnly else { throw ClientError.message("Değişiklik için canlı bağlantı gerekli.") }
         let (selected,token) = try credentials()
+        let revision = accountRevision
         let result = try await client.issueDetail(project,number:number,origin:selected.origin,token:token)
-        guard selected == identity else { throw CancellationError() }
+        guard isCurrent(selected,revision:revision) else { throw CancellationError() }
         return result.issue
     }
     func issueOptions(_ project: Project) async throws -> IssueOptions {
         guard !offlineOnly else { throw ClientError.message("Çevrimdışıyken gönderim ve yetki sorgusu yapılamaz.") }
         let (selected,token) = try credentials()
+        let revision = accountRevision
         let options = try await client.issueOptions(project,origin:selected.origin,token:token)
-        guard identity == selected else { throw CancellationError() }
+        guard isCurrent(selected,revision:revision) else { throw CancellationError() }
         return options
     }
     func issueWrite<Body: Encodable,Result: Decodable>(_ body: Body,path: String,method: String = "POST",operation: String,as: Result.Type) async throws -> Result {
         guard !offlineOnly else { throw ClientError.message("Göndermek için internete bağlan.") }
         let (selected,token) = try credentials()
+        let revision = accountRevision
         try IssueWriteLedger.shared.begin(identity:selected,operation:operation)
         do {
             #if DEBUG
@@ -95,7 +98,7 @@ extension Workspace {
             #endif
             let result = try await writer.send(body,path:path,method:method,identity:selected,token:token,as:Result.self)
             try IssueWriteLedger.shared.record(.init(state:"sent",number:(result as? GiteaIssue)?.number,date:Date()),identity:selected,operation:operation)
-            guard identity == selected else { throw CancellationError() }
+            guard isCurrent(selected,revision:revision) else { throw CancellationError() }
             return result
         } catch let error as IssueWriteRefused {
             IssueWriteLedger.shared.refused(identity:selected,operation:operation)

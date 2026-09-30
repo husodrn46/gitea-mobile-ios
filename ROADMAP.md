@@ -13,7 +13,14 @@ Kullanıcının kendi Gitea sunucusundaki depolarını, konularını ve PR incel
 
 ## M2 — Çoklu hesap ve uluslararası kullanım
 
-Kayıtlı sunucu/hesap seçici, hesap bazında fikir defteri, açık hesap adıyla yazma onayı, İngilizce/Türkçe yerelleştirme, alt dizinli HTTPS kurulumları için güvenli URL modeli ve erişilebilirlik incelemesi.
+- [x] Kayıtlı sunucu/hesap seçici ve açık canlı yeniden bağlantı (#1, #2).
+- [x] Hesap bazında fikir defteri; eski cihaz fikirlerinin açık seçimle kopyalanması (#2).
+- [x] Gönderim öncesinde sunucu, hesap ve depo hedefi; hesap değişiminde eski formun gönderilmemesi (#2).
+- [x] Sunucuyla doğrulanan tek bildirim okundu işlemi (#3).
+- [x] PR sayfalaması ve kademeli günlük ayrıntı yükleme (#4).
+- [ ] İngilizce/Türkçe yerelleştirme.
+- [ ] Alt dizinli HTTPS kurulumları için güvenli URL modeli.
+- [ ] Yayın öncesi erişilebilirlik incelemesi.
 
 ## M3 — Beta dağıtım
 

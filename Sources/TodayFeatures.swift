@@ -126,6 +126,9 @@ struct RemoteTodayView: View {
     @State private var choosing = false
     @State private var category: TodayCategory? = nil
     @State private var runID = UUID()
+    @State private var lists: [String: ReadResult<PullListSnapshot>] = [:]
+    @State private var pendingDetails: [PullRequest] = []
+    @State private var detailFailures = 0
     private let baselineKey = "today-observations-v1"
     var selectionKey: String { "today-projects-" + workspace.cache.digest(workspace.identity?.scope ?? "none") }
     var taskKey: String { (workspace.identity?.scope ?? "none") + "|" + String(workspace.offlineOnly) }
@@ -156,6 +159,14 @@ struct RemoteTodayView: View {
                 }.padding(.vertical,4)
             }
             if loading { ProgressView("Seçili projeler okunuyor…") }
+            if !pendingDetails.isEmpty || detailFailures > 0 {
+                Text("\(pendingDetails.count + detailFailures) yüklenen PR henüz doğrulanmadı. Bu PR’lar hazır veya sağlıklı sayılmıyor.").font(.footnote).foregroundStyle(Color.waiting)
+            }
+            if !pendingDetails.isEmpty { Button("Sonraki 10 PR’ı incele") { Task { await details(run:runID) } }.buttonStyle(.glass).disabled(loading).accessibilityIdentifier("moreTodayDetails") }
+            if lists.values.contains(where: { $0.value.hasMore }) {
+                Text("PR listelerinde okunmamış sayfalar var; toplam açık PR sayısı henüz bilinmiyor.").font(.footnote).foregroundStyle(.secondary)
+                Button("Sonraki PR sayfasını getir") { Task { await moreList() } }.buttonStyle(.glass).disabled(loading || workspace.offlineOnly).accessibilityIdentifier("moreTodayPulls")
+            }
             ForEach(Array(notices.enumerated()),id:\.offset) { _,notice in Text(notice).font(.footnote).foregroundStyle(Color.waiting) }
             if selected.isEmpty {
                 Text("Projeler düğmesinden takip edeceğin depoları seç veya favorilerini kullan.").foregroundStyle(.secondary)
@@ -217,7 +228,7 @@ struct RemoteTodayView: View {
         if mine > 0 { parts.append("\(mine) inceleme senden bekleniyor") }
         if testing > 0 { parts.append("\(testing) PR testte") }
         if parts.isEmpty { parts.append(others > 0 ? "\(others) PR inceleme bekliyor" : "\(rows.count) PR · Sonraki adım belirsiz") }
-        let prefix = rows.contains(where: { $0.result.cached }) ? "Son kayıtlarda: " : !notices.isEmpty ? "Okunabilenlerde: " : ""
+        let prefix = rows.contains(where: { $0.result.cached }) ? "Son kayıtlarda: " : (!notices.isEmpty || !pendingDetails.isEmpty || detailFailures > 0 || lists.values.contains(where: { $0.value.hasMore })) ? "Okunabilenlerde: " : ""
         return prefix + parts.joined(separator:" · ")
     }
     var changeExplanation: String { "İlk başarılı okuma başlangıç kaydıdır. Sonrasında ‘Gördüm’ dediğin kayıtla karşılaştırılır; ilk okumada geçmiş üretilmez. Cihazda en son 100 PR’ın başlangıç kaydı tutulur; kapsam dışına çıkan kaydın sonraki okuması yeni başlangıçtır. Yenileme hataları değişiklik sayılmaz." }
@@ -257,7 +268,7 @@ struct RemoteTodayView: View {
                     Toggle(project.fullName,isOn:Binding(get:{ selected.contains(project.fullName) },set:{ on in if on { selected.insert(project.fullName) } else { selected.remove(project.fullName) } }))
                 }
             }.navigationTitle("Bugün için projeler")
-                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Uygula") { UserDefaults.standard.set(Array(selected),forKey:selectionKey); choosing = false; Task { await load() } } } }
+                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("Uygula") { workspace.defaults.set(Array(selected),forKey:selectionKey); choosing = false; Task { await load() } } } }
         }.interactiveDismissDisabled()
     }
     func evidence(_ snapshot: PRSnapshot) -> String {
@@ -274,7 +285,7 @@ struct RemoteTodayView: View {
     @MainActor func initialize() async {
         category = appearance.layout.queueFilter.category
         rows = []; notices = []; baseline = TodayBaseline(); baselineWarning = nil
-        selected = Set(UserDefaults.standard.stringArray(forKey:selectionKey) ?? workspace.projects.filter { workspace.favorites.contains($0.fullName) }.map(\.fullName))
+        selected = Set(workspace.defaults.stringArray(forKey:selectionKey) ?? workspace.projects.filter { workspace.favorites.contains($0.fullName) }.map(\.fullName))
         selected.formIntersection(Set(workspace.projects.map(\.fullName)))
         if let identity = workspace.identity {
             do { baseline = try workspace.cache.load(TodayBaseline.self,key:baselineKey,identity:identity) ?? TodayBaseline() }
@@ -285,35 +296,56 @@ struct RemoteTodayView: View {
     @MainActor func load() async {
         let run = UUID(); runID = run
         guard let identity = workspace.identity else { return }
-        loading = true; rows = []; notices = baselineWarning.map { [$0] } ?? []
+        loading = true; rows = []; lists = [:]; pendingDetails = []; detailFailures = 0; notices = baselineWarning.map { [$0] } ?? []
         defer { if runID == run { loading = false } }
         let projects = workspace.projects.filter { selected.contains($0.fullName) }
         if projects.count > 20 { notices.append("Bu yenilemede ilk 20 proje taranıyor. Kapsamı daraltarak diğerlerini görebilirsin.") }
-        var nextRows: [TodayRow] = []
-        var nextBaseline = baseline
         for project in projects.prefix(20) {
             do {
                 let list = try await workspace.loadPullList(project)
                 guard runID == run,workspace.identity == identity,!Task.isCancelled else { return }
+                lists[project.fullName] = list; pendingDetails += list.value.pulls
                 if let note = list.note { notices.append(project.name + ": " + note) }
-                if list.value.pulls.count >= 50 { notices.append(project.name + ": En fazla 50 açık PR gösteriliyor. Daha fazlası bulunabilir; tam listeyi Gitea’da kontrol et.") }
-                for pull in list.value.pulls.prefix(50) {
-                    do {
-                        let response = try await workspace.loadSnapshot(pull)
-                        guard runID == run,workspace.identity == identity,!Task.isCancelled else { return }
-                        let result = ReadResult(value:response.value,cached:response.cached || list.cached,note:response.note)
-                        let key = pull.project.fullName + "#" + String(pull.id)
-                        let changes = nextBaseline.observe(key:key,snapshot:result.value,cached:result.cached)
-                        nextRows.append(TodayRow(pull:pull,result:result,changes:changes))
-                        if let note = response.note { notices.append("\(project.name) #\(pull.id): " + note) }
-                    } catch is CancellationError { return }
-                    catch { notices.append("\(project.name) #\(pull.id): \(error.localizedDescription)") }
-                }
             } catch is CancellationError { return }
-            catch { notices.append(project.name + ": " + error.localizedDescription) }
+            catch { guard runID == run,workspace.identity == identity else { return }; notices.append(project.name + ": " + error.localizedDescription) }
         }
         guard runID == run,workspace.identity == identity,!Task.isCancelled else { return }
-        baseline = nextBaseline; rows = nextRows
+        loading = false
+        await details(run:run)
+    }
+    @MainActor func moreList() async {
+        let run = runID
+        guard let identity = workspace.identity,let project = workspace.projects.first(where: { lists[$0.fullName]?.value.hasMore == true }),let previous = lists[project.fullName] else { return }
+        loading = true; defer { if runID == run { loading = false } }
+        do {
+            let list = try await workspace.loadMorePulls(project,previous:previous.value,previousCached:previous.cached)
+            guard runID == run,workspace.identity == identity,!Task.isCancelled else { return }
+            let known = Set(previous.value.pulls.map(\.id))
+            pendingDetails += list.value.pulls.filter { !known.contains($0.id) }
+            lists[project.fullName] = list
+        } catch { if runID == run,workspace.identity == identity { notices.append("Sonraki sayfa alınamadı; mevcut liste korundu: " + error.localizedDescription) } }
+    }
+    @MainActor func details(run: UUID) async {
+        guard let identity = workspace.identity,runID == run,!loading else { return }
+        loading = true; defer { if runID == run { loading = false } }
+        let batch = Array(pendingDetails.prefix(10))
+        for pull in batch {
+            do {
+                let response = try await workspace.loadSnapshot(pull)
+                guard runID == run,workspace.identity == identity,!Task.isCancelled else { return }
+                let listCached = lists[pull.project.fullName]?.cached == true
+                let result = ReadResult(value:response.value,cached:response.cached || listCached,note:response.note)
+                let key = pull.project.fullName + "#" + String(pull.id)
+                let changes = baseline.observe(key:key,snapshot:result.value,cached:result.cached)
+                rows.append(TodayRow(pull:pull,result:result,changes:changes))
+                if let note = response.note { notices.append("\(pull.project.name) #\(pull.id): " + note) }
+            } catch is CancellationError { return }
+            catch {
+                guard runID == run,workspace.identity == identity,!Task.isCancelled else { return }
+                detailFailures += 1; notices.append("\(pull.project.name) #\(pull.id) doğrulanmadı: " + error.localizedDescription)
+            }
+            pendingDetails.removeAll { $0.project.fullName == pull.project.fullName && $0.id == pull.id }
+        }
         if !workspace.offlineOnly { saveBaseline(identity) }
     }
     @MainActor func acknowledge() {

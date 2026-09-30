@@ -254,6 +254,8 @@ struct ProjectDetail: View {
     @State private var ideaShown = false
     @State private var loading = true
     @State private var error: String?
+    @State private var loadingMore = false
+    @State private var runID = UUID()
     var body: some View {
         ScrollView {
             VStack(alignment:.leading,spacing:18) {
@@ -263,21 +265,33 @@ struct ProjectDetail: View {
                 Text("Açık PR’lar").font(.title2.bold())
                 if let listResult { FreshnessView(date:listResult.value.fetchedAt,cached:listResult.cached,note:listResult.note) }
                 if loading { ProgressView("Yükleniyor").frame(maxWidth:.infinity) }
-                else if let error { Text(error).foregroundStyle(.secondary); Button("Yeniden dene") { Task { await load() } }.buttonStyle(.glass) }
+                else if let error { Text(error).foregroundStyle(.secondary); if pulls.isEmpty { Button("Yeniden dene") { Task { await load() } }.buttonStyle(.glass) } }
                 else if pulls.isEmpty { ContentUnavailableView("Açık PR yok",systemImage:"checkmark.circle",description:Text("Bu projede bekleyen bir PR bulunmuyor.")) }
                 ForEach(pulls) { pull in NavigationLink { PullDestination(pull:pull) } label: { PullCard(pull:pull) }.buttonStyle(.plain) }
-                if workspace.live { Text("İlk 50 açık PR gösterilir. Ayrıntıya girerek test ve incelemeleri alabilirsin.").font(.footnote).foregroundStyle(.secondary) }
+                if let listResult {
+                    Text("\(pulls.count) PR yüklendi · " + (listResult.value.hasMore ? "Daha fazlası bulunabilir" : "Liste sonuna ulaşıldı")).font(.footnote).foregroundStyle(.secondary)
+                    if listResult.value.hasMore {
+                        Button(loadingMore ? "Yükleniyor…" : "Daha fazla yükle") { Task { await more() } }.buttonStyle(.glass).disabled(loadingMore || loading || workspace.offlineOnly).accessibilityIdentifier("morePulls")
+                    }
+                }
             }.padding(22)
-        }.background(Color.canvas).navigationTitle(project.name).navigationBarTitleDisplayMode(.inline).task { await load() }.refreshable { await load() }
+        }.background(Color.canvas).navigationTitle(project.name).navigationBarTitleDisplayMode(.inline).task(id:workspace.identity?.scope) { await load() }.refreshable { await load() }
         .toolbar { Button("Yeni fikir",systemImage:"plus") { ideaShown = true } }
         .sheet(isPresented:$ideaShown) { IdeaSheet(initialProject:project.fullName) }
     }
     func load() async {
-        loading = true; error = nil; pulls = []; listResult = nil; defer { loading = false }
+        let run = UUID(); runID = run
+        loading = true; loadingMore = false; error = nil; defer { if runID == run { loading = false } }
         do {
-            if workspace.live { let value = try await workspace.loadPullList(project); listResult = value; pulls = value.value.pulls }
+            if workspace.live { let value = try await workspace.loadPullList(project); guard runID == run,!Task.isCancelled else { return }; listResult = value; pulls = value.value.pulls }
             else { pulls = try await workspace.loadPulls(project) }
-        } catch { if !Task.isCancelled { self.error = error.localizedDescription } }
+        } catch { if runID == run,!Task.isCancelled { self.error = error.localizedDescription } }
+    }
+    func more() async {
+        guard let previous = listResult else { return }; let run = runID
+        loadingMore = true; error = nil; defer { if runID == run { loadingMore = false } }
+        do { let value = try await workspace.loadMorePulls(project,previous:previous.value,previousCached:previous.cached); guard runID == run,!Task.isCancelled else { return }; listResult = value; pulls = value.value.pulls }
+        catch { if runID == run,!Task.isCancelled { self.error = error.localizedDescription } }
     }
 }
 struct PullDetail: View {

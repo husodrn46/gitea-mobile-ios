@@ -77,6 +77,8 @@ struct IdeaSheet: View {
     @State private var problem: String
     @State private var acceptance: String
     @State private var discardShown = false
+    @State private var draftScope: String?
+    @State private var scopeCaptured = false
     init(existing: DraftIdea? = nil,initialProject: String = "") {
         self.existing = existing
         _title = State(initialValue:existing?.title ?? "")
@@ -115,6 +117,7 @@ struct IdeaSheet: View {
                     ToolbarItem(placement:.confirmationAction) {
                         Button("Kaydet") {
                             do {
+                                guard scopeCaptured,draftScope == workspace.identity?.scope else { throw ClientError.message("Hesap değişti. Fikri kaydetmek için formu yeniden aç.") }
                                 var draft = existing ?? DraftIdea(title:"",text:"",project:"")
                                 draft.title = title.trimmingCharacters(in:.whitespacesAndNewlines)
                                 draft.text = text; draft.project = project.isEmpty ? "Genel fikir" : project
@@ -125,7 +128,7 @@ struct IdeaSheet: View {
                         }.disabled(title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty).accessibilityIdentifier("saveIdea")
                     }
                 }
-        }.presentationDragIndicator(.visible).interactiveDismissDisabled(hasChanges)
+        }.onAppear { if !scopeCaptured { draftScope = workspace.identity?.scope; scopeCaptured = true } }.presentationDragIndicator(.visible).interactiveDismissDisabled(hasChanges)
             .alert("Kaydedilmemiş değişiklikler silinsin mi?",isPresented:$discardShown) {
                 Button("Değişiklikleri sil",role:.destructive) { dismiss() }
                 Button("Yazmaya devam et",role:.cancel) { }
@@ -212,6 +215,7 @@ struct ProfileView: View {
                 }.padding(.vertical,8)
             }
             Section("Sana göre") {
+                NavigationLink("Kayıtlı hesaplar") { AccountManagerView() }.accessibilityIdentifier("savedAccounts")
                 Button { appearanceShown = true } label: { Label("Kişiselleştir",systemImage:"slider.horizontal.3") }.accessibilityIdentifier("profileAppearance")
                 NavigationLink { PrivacySettingsView() } label: { Label("Gizlilik ve kilit",systemImage:"lock.shield") }.accessibilityIdentifier("privacySettings")
                 NavigationLink { SigningRenewalView() } label: { Label("Kurulum süresi",systemImage:"calendar.badge.clock") }.accessibilityIdentifier("signingSettings")
@@ -224,6 +228,9 @@ struct ProfileView: View {
                     Button("Saklanmış kaydı aç") { do { try workspace.openOffline() } catch { self.error = error.localizedDescription } }
                     Button("Çevrimdışı kayıtları temizle",role:.destructive) { do { try workspace.clearCache() } catch { self.error = error.localizedDescription } }
                 } else { Text("Bağlanıp okuduğun ekranlar, son alınma zamanı ile bu cihazda saklanır.").font(.footnote) }
+                if workspace.offlineOnly {
+                    Button("Canlı bağlantıya geç") { Task { do { try await workspace.reconnect() } catch { self.error = error.localizedDescription } } }.disabled(workspace.busy).accessibilityIdentifier("reconnectLive")
+                }
                 if let note = workspace.cacheNotice { Text(note).font(.footnote).foregroundStyle(.secondary) }
             }
             Section("Bu sürüm") {
@@ -233,7 +240,7 @@ struct ProfileView: View {
             if workspace.live {
                 Section {
                     Button("Örnek ekranlara dön") { workspace.useDemo() }
-                    Button("Bağlantıyı ve anahtarı kaldır",role:.destructive) { do { try workspace.disconnect() } catch { self.error = error.localizedDescription } }
+                    NavigationLink("Hesapları yönet veya kaldır") { AccountManagerView() }
                 }
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
@@ -269,7 +276,7 @@ struct ConnectionSheet: View {
                     if let origin = try? GiteaClient.validatedOrigin(server) {
                         Link("Erişim anahtarı oluştur",destination:origin.appending(path:"user/settings/applications")).accessibilityIdentifier("createAccessToken")
                     }
-                    Text("Gitea’da anahtara Gitea Mobile adını verebilirsin. user, repository ve notification için Okuma; issue için Okuma ve yazma seç. Yalnız görüntülemek istersen issue için de Okuma yeterli. Özel depoların için erişimi yalnız herkese açık depolarla sınırlama.").font(.footnote).foregroundStyle(.secondary)
+                    Text("Gitea’da anahtara Gitea Mobile adını verebilirsin. user ve repository için Okuma; issue için Okuma ve yazma seç. notification için Okuma yeterli; bildirimleri okundu işaretlemek istersen Okuma ve yazma seç. Yalnız görüntülemek istersen issue için de Okuma yeterli. Özel depoların için erişimi yalnız herkese açık depolarla sınırlama.").font(.footnote).foregroundStyle(.secondary)
                     Text("Anahtar yalnız oluşturulurken gösterilir. Kopyalayıp yukarıya yapıştır. Bu cihazın Keychain’inde saklanır ve yalnız girdiğin sunucuya gönderilir. Yönetici veya depo yazma izni gerekmez.").font(.footnote).foregroundStyle(.secondary)
                 }
                 if let error { Section { Text(error).foregroundStyle(.red).accessibilityIdentifier("connectionError") } }

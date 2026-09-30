@@ -64,6 +64,8 @@ final class WorkflowUITests: XCTestCase {
             app.buttons.matching(NSPredicate(format:"label CONTAINS %@","Depo")).firstMatch.tap()
             app.buttons["ornek/mobile"].tap()
         }
+        for _ in 0..<4 { if app.buttons["createIssue"].isHittable { break }; app.swipeUp() }
+        XCTAssertTrue(app.buttons["createIssue"].isHittable)
         shot("05-fikir-konu")
         app.buttons["createIssue"].tap()
         XCTAssertTrue(app.buttons["Konuşmayı aç"].waitForExistence(timeout:8))

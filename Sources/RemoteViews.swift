@@ -201,6 +201,7 @@ struct RemoteInboxView: View {
     @State private var result: ReadResult<InboxSnapshot>?
     @State private var error: String?
     @State private var unreadOnly = true
+    @State private var marking: Int?
     var body: some View {
         VStack(alignment:.leading,spacing:18) {
             HStack {
@@ -221,10 +222,16 @@ struct RemoteInboxView: View {
                     } else {
                         notificationCard(thread,native:false)
                     }
+                    if thread.unread {
+                        SendTargetView(repository:thread.repository.full_name)
+                        Button(marking == thread.id ? "Doğrulanıyor…" : "Okundu işaretle") { Task { await mark(thread) } }
+                            .buttonStyle(.glass).disabled(workspace.offlineOnly || marking != nil).accessibilityIdentifier("markRead-\(thread.id)")
+                    }
                 }
             } else if let error { Text(error).foregroundStyle(Color.waiting) }
             else { ProgressView("Bildirimler alınıyor") }
-            Button("Yenile") { Task { await load() } }.buttonStyle(.glass)
+            if result != nil,let error { Text(error).foregroundStyle(Color.waiting) }
+            Button("Yenile") { Task { await load() } }.buttonStyle(.glass).disabled(marking != nil)
         }.task(id:workspace.identity?.scope) { await load() }
     }
     func notificationCard(_ thread: NotificationThread,native: Bool) -> some View {
@@ -243,5 +250,17 @@ struct RemoteInboxView: View {
             }.frame(maxWidth:.infinity,alignment:.leading)
         }
     }
-    func load() async { result = nil; error = nil; do { result = try await workspace.loadInbox() } catch { if !Task.isCancelled { self.error = error.localizedDescription } } }
+    func mark(_ thread: NotificationThread) async {
+        let selected = workspace.identity; let revision = workspace.accountRevision
+        marking = thread.id; error = nil
+        defer { if workspace.identity == selected,workspace.accountRevision == revision { marking = nil } }
+        do {
+            let verified = try await workspace.markNotificationRead(thread)
+            guard workspace.identity == selected,workspace.accountRevision == revision,let old = result else { return }
+            let snapshot = InboxSnapshot(threads:old.value.threads.map { $0.id == verified.id ? verified : $0 },fetchedAt:old.value.fetchedAt)
+            result = ReadResult(value:snapshot,cached:old.cached,note:old.note)
+            if let selected { try? workspace.cache.save(snapshot,key:"inbox",identity:selected) }
+        } catch { if workspace.identity == selected,workspace.accountRevision == revision { self.error = "Okundu durumu kesinleşmedi: " + error.localizedDescription } }
+    }
+    func load() async { marking = nil; result = nil; error = nil; do { result = try await workspace.loadInbox() } catch { if !Task.isCancelled { self.error = error.localizedDescription } } }
 }

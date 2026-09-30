@@ -59,7 +59,12 @@ struct DraftIdea: Identifiable, Codable {
     @Published var offlineOnly = false
     @Published var identity: ConnectionIdentity?
     @Published var cacheNotice: String?
-    let cache = SnapshotStore()
+    let cache: SnapshotStore
+    let draftRoot: URL
+    @Published var accounts: [ConnectionIdentity] = []
+    @Published var deviceDrafts: [DraftIdea] = []
+    var accountRevision = UUID()
+    func isCurrent(_ selected: ConnectionIdentity, revision: UUID) -> Bool { identity == selected && accountRevision == revision }
     let defaults: UserDefaults
     @Published var hasChosenMode: Bool
     var requiresOnboarding: Bool { !hasChosenMode && !isFixture }
@@ -78,10 +83,12 @@ struct DraftIdea: Identifiable, Codable {
     }
     func openOffline() throws {
         guard let stored = savedIdentity,let catalog = try cache.load(CatalogSnapshot.self,key:"catalog",identity:stored) else { throw ClientError.message("Bu cihazda saklanmış bir sunucu kaydı yok.") }
-        generation = UUID(); busy = false; identity = stored; login = stored.login
+        generation = UUID(); accountRevision = UUID(); busy = false; identity = stored; login = stored.login
         favorites = Set(defaults.stringArray(forKey:"favorites." + stored.scope) ?? [])
         projects = catalog.projects; pulls = []; live = true; offlineOnly = true
         cacheNotice = "Çevrimdışı kayıt · " + catalog.fetchedAt.formatted(date:.abbreviated,time:.shortened)
+        hasChosenMode = true; defaults.set(true,forKey:"onboarding.v1.completed"); defaults.set("connected",forKey:"workspace.mode")
+        loadDrafts()
     }
     func clearCache() throws {
         if let stored = identity ?? savedIdentity { try cache.remove(stored) }
@@ -91,7 +98,8 @@ struct DraftIdea: Identifiable, Codable {
     }
     func resource<T: Codable>(_ type: T.Type,key: String,fetch: (URL,String) async throws -> T) async throws -> ReadResult<T> {
         guard let selected = identity else { throw ClientError.message("Önce sunucuya bağlan.") }
-        let version = generation
+        try Task.checkCancellation()
+        let version = generation; let readVersion = UUID(); resourceVersions[key] = readVersion
         if offlineOnly {
             guard let value = try cache.load(type,key:key,identity:selected) else { throw ClientError.message("Bu ekran daha önce kaydedilmemiş. İnternet bağlantısıyla bir kez aç.") }
             return ReadResult(value:value,cached:true,note:"Çevrimdışı kayıt; güncel olmayabilir.")
@@ -100,13 +108,13 @@ struct DraftIdea: Identifiable, Codable {
             let (_,token) = try credentials()
             let value = try await fetch(selected.origin,token)
             try Task.checkCancellation()
-            guard generation == version,identity == selected else { throw CancellationError() }
+            guard generation == version,identity == selected,resourceVersions[key] == readVersion else { throw CancellationError() }
             var note: String?
             do { try cache.save(value,key:key,identity:selected) }
             catch { note = "Veri güncel; cihazdaki kopya kaydedilemedi." }
             return ReadResult(value:value,cached:false,note:note)
         } catch {
-            guard !Task.isCancelled,generation == version,identity == selected else { throw CancellationError() }
+            guard !Task.isCancelled,!(error is CancellationError),generation == version,identity == selected,resourceVersions[key] == readVersion else { throw CancellationError() }
             if let saved = try? cache.load(type,key:key,identity:selected) {
                 return ReadResult(value:saved,cached:true,note:"Yenileme başarısız: \(error.localizedDescription) Saklanmış kayıt gösteriliyor.")
             }
@@ -130,8 +138,21 @@ struct DraftIdea: Identifiable, Codable {
     }
     func loadPullList(_ project: Project) async throws -> ReadResult<PullListSnapshot> {
         try await resource(PullListSnapshot.self,key:"pulls|\(project.fullName)") { origin,token in
-            PullListSnapshot(pulls:try await self.client.pulls(project:project,origin:origin,token:token),fetchedAt:Date())
+            try await self.client.pullPage(project:project,origin:origin,token:token)
         }
+    }
+    /// A failed page never replaces the already verified list or advances its cursor.
+    func loadMorePulls(_ project: Project,previous: PullListSnapshot,previousCached: Bool = false) async throws -> ReadResult<PullListSnapshot> {
+        guard !offlineOnly,previous.hasMore else { throw ClientError.message("Sonraki sayfa için canlı bağlantı gerekli.") }
+        let (selected,token) = try credentials(); let revision = accountRevision; let version = generation
+        let key = "pulls|\(project.fullName)"; let readVersion = UUID(); resourceVersions[key] = readVersion
+        let page = try await client.pullPage(project:project,origin:selected.origin,token:token,page:previous.nextPage)
+        try Task.checkCancellation()
+        guard generation == version,isCurrent(selected,revision:revision),resourceVersions[key] == readVersion,!offlineOnly else { throw CancellationError() }
+        let merged = previous.appending(page)
+        var note: String? = previousCached ? "Önceki sayfalar saklanmış kayıttan; en eski alınma zamanı korunuyor." : nil
+        do { try cache.save(merged,key:"pulls|\(project.fullName)",identity:selected) } catch { note = "Yeni sayfa alındı; cihazdaki kopya kaydedilemedi." }
+        return ReadResult(value:merged,cached:previousCached,note:note)
     }
     @Published var login = "Demo"
     @Published var busy = false
@@ -143,18 +164,22 @@ struct DraftIdea: Identifiable, Codable {
         didSet { defaults.set(Array(favorites),forKey:"favorites." + (identity?.scope ?? "demo")) }
     }
     private var generation = UUID()
+    private var resourceVersions: [String:UUID] = [:]
     let client: GiteaClient
     var isFixture = false
-    init(defaults: UserDefaults? = nil) {
+    init(defaults: UserDefaults? = nil, client: GiteaClient? = nil, cache: SnapshotStore = SnapshotStore(), draftRoot: URL? = nil) {
         let defaults = defaults ?? Appearance.appDefaults
         self.defaults = defaults
+        self.cache = cache; self.draftRoot = draftRoot ?? Self.draftURL.deletingLastPathComponent()
+        accounts = (defaults.data(forKey:"accounts.v1").flatMap { try? JSONDecoder().decode([ConnectionIdentity].self,from:$0) }) ?? []
         hasChosenMode = defaults.bool(forKey:"onboarding.v1.completed")
         #if DEBUG
         isFixture = ProcessInfo.processInfo.arguments.contains("--fixture-gitea")
-        client = GiteaClient(protocolClasses:isFixture ? [RemoteFixtureProtocol.self] : nil)
+        self.client = client ?? GiteaClient(protocolClasses:isFixture ? [RemoteFixtureProtocol.self] : nil)
         #else
-        client = GiteaClient()
+        self.client = client ?? GiteaClient()
         #endif
+        if let old = savedIdentity, !accounts.contains(where: { $0.scope == old.scope }) { accounts.append(old); persistAccounts() }
         favorites = Set(defaults.stringArray(forKey:"favorites.demo") ?? [Project.samples[0].fullName])
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--demo-gitea"),ProcessInfo.processInfo.environment["GITEA_TEST_PREFERENCES"]?.hasPrefix("test.") == true { hasChosenMode = true }
@@ -169,73 +194,121 @@ struct DraftIdea: Identifiable, Codable {
             offlineOnly = ProcessInfo.processInfo.arguments.contains("--fixture-offline")
             projects = [Project(id:1,name:"Mobil",fullName:"ornek/mobile",summary:"Test deposu",mark:4,language:"Swift",issues:1,isPrivate:true)]
             pulls = []
+            if ProcessInfo.processInfo.arguments.contains("--fixture-accounts") {
+                accounts = [selected,ConnectionIdentity(origin:selected.origin,login:"reader"),ConnectionIdentity(origin:URL(string:"https://second-fixture.invalid")!,login:"reviewer")]
+                for account in accounts { try? cache.save(CatalogSnapshot(projects:projects,fetchedAt:Date()),key:"catalog",identity:account) }
+            }
         }
         #endif
         if !isFixture, savedIdentity != nil, defaults.string(forKey:"workspace.mode") != "demo" {
             if let stored = savedIdentity, defaults.object(forKey:"favorites." + stored.scope) == nil,let previous = defaults.stringArray(forKey:"favorites") { defaults.set(previous,forKey:"favorites." + stored.scope) }
-            try? openOffline(); hasChosenMode = live
+            if let stored = savedIdentity { try? selectAccount(stored) }; hasChosenMode = live
         }
-        let path = Self.draftURL
-        if FileManager.default.fileExists(atPath:path.path) {
-            do { drafts = try JSONDecoder().decode([DraftIdea].self,from:Data(contentsOf:path)) }
-            catch { draftError = "Kaydedilmiş taslaklar okunamadı. Dosya korunuyor; üzerine yazılmayacak." }
-        }
+        loadDrafts()
     }
+    func persistAccounts() { if let data = try? JSONEncoder().encode(accounts) { defaults.set(data,forKey:"accounts.v1") } }
+    var activeDraftURL: URL {
+        guard let identity else { return draftRoot.appendingPathComponent("ideas.json") }
+        return draftRoot.appendingPathComponent("AccountIdeas").appendingPathComponent(cache.digest(identity.scope) + ".json")
+    }
+    func loadDrafts() {
+        drafts = []; deviceDrafts = []; draftError = nil
+        do {
+            let legacy = draftRoot.appendingPathComponent("ideas.json")
+            if FileManager.default.fileExists(atPath:legacy.path) { deviceDrafts = try JSONDecoder().decode([DraftIdea].self,from:Data(contentsOf:legacy)) }
+            if identity == nil { drafts = deviceDrafts }
+            else if FileManager.default.fileExists(atPath:activeDraftURL.path) { drafts = try JSONDecoder().decode([DraftIdea].self,from:Data(contentsOf:activeDraftURL)) }
+        } catch { draftError = "Kaydedilmiş taslaklar okunamadı. Dosya korunuyor; üzerine yazılmayacak." }
+    }
+    /// Explicit copy; the original device library remains intact.
+    func copyDeviceDraftsToAccount() throws {
+        guard identity != nil else { throw ClientError.message("Önce bir hesap seç.") }
+        for draft in deviceDrafts where !drafts.contains(where: { $0.id == draft.id }) { try save(draft) }
+    }
+    func selectAccount(_ selected: ConnectionIdentity) throws {
+        guard accounts.contains(where: { $0.scope == selected.scope }) else { throw ClientError.message("Hesap kayıtlı değil.") }
+        let catalog = try? cache.load(CatalogSnapshot.self,key:"catalog",identity:selected)
+        generation = UUID(); accountRevision = UUID(); busy = false
+        identity = selected; login = selected.login; live = true; offlineOnly = true
+        projects = catalog?.projects ?? []; pulls = []
+        favorites = Set(defaults.stringArray(forKey:"favorites." + selected.scope) ?? [])
+        cacheNotice = catalog.map { "Çevrimdışı kayıt · " + $0.fetchedAt.formatted(date:.abbreviated,time:.shortened) } ?? "Bu hesabın çevrimdışı proje kaydı yok. Canlı bağlantıya geç."
+        defaults.set(try JSONEncoder().encode(selected),forKey:"lastReadIdentity")
+        hasChosenMode = true; defaults.set(true,forKey:"onboarding.v1.completed"); defaults.set("connected",forKey:"workspace.mode")
+        loadDrafts()
+    }
+    func reconnect(_ selected: ConnectionIdentity? = nil) async throws {
+        guard let expected = selected ?? identity ?? savedIdentity else { throw ClientError.message("Kayıtlı hesap yok.") }
+        guard let token = try TokenVault.load(account:expected.credentialKey) else { throw ClientError.message("Kayıtlı anahtar yok. Bağlantıyı yönet bölümünden yeniden giriş yap.") }
+        try await connect(server:expected.origin.absoluteString,token:token,expected:expected)
+    }
+    func removeAccount(_ selected: ConnectionIdentity) throws {
+        try TokenVault.delete(account:selected.credentialKey)
+        try cache.remove(selected)
+        let file = draftRoot.appendingPathComponent("AccountIdeas").appendingPathComponent(cache.digest(selected.scope) + ".json")
+        if FileManager.default.fileExists(atPath:file.path) { try FileManager.default.removeItem(at:file) }
+        defaults.removeObject(forKey:"favorites." + selected.scope)
+        accounts.removeAll { $0.scope == selected.scope }; persistAccounts()
+        if savedIdentity?.scope == selected.scope { defaults.removeObject(forKey:"lastReadIdentity") }
+        if identity?.scope == selected.scope { useDemo() }
+    }
+
     static var draftURL: URL { FileManager.default.urls(for:.applicationSupportDirectory,in:.userDomainMask)[0].appendingPathComponent("ideas.json") }
     func save(_ draft: DraftIdea) throws {
         guard draftError == nil else { throw ClientError.message(draftError!) }
         let next = drafts.contains(where: { $0.id == draft.id }) ? drafts.map { $0.id == draft.id ? draft : $0 } : [draft] + drafts
-        try FileManager.default.createDirectory(at:Self.draftURL.deletingLastPathComponent(),withIntermediateDirectories:true)
-        try JSONEncoder().encode(next).write(to:Self.draftURL,options:[.atomic,.completeFileProtection])
+        try FileManager.default.createDirectory(at:activeDraftURL.deletingLastPathComponent(),withIntermediateDirectories:true)
+        try JSONEncoder().encode(next).write(to:activeDraftURL,options:[.atomic,.completeFileProtection])
         drafts = next
+        if identity == nil { deviceDrafts = next }
     }
     func toggleFavorite(_ project: Project) {
         if favorites.contains(project.fullName) { favorites.remove(project.fullName) } else { favorites.insert(project.fullName) }
     }
-    func connect(server: String, token: String) async throws {
+    func connect(server: String, token: String, expected: ConnectionIdentity? = nil) async throws {
         guard !busy else { throw ClientError.message("Bir bağlantı isteği zaten sürüyor.") }
-        let requestID = UUID(); generation = requestID
+        let requestID = UUID(); generation = requestID; accountRevision = UUID()
         busy = true; defer { if generation == requestID { busy = false } }
         let origin = try GiteaClient.validatedOrigin(server)
         let credential = token.trimmingCharacters(in:.whitespacesAndNewlines)
         guard !credential.isEmpty else { throw ClientError.message("Erişim anahtarını gir.") }
         let user = try await client.user(origin:origin,token:credential)
+        try Task.checkCancellation()
+        guard generation == requestID else { throw CancellationError() }
+        if let expected, user.login.caseInsensitiveCompare(expected.login) != .orderedSame {
+            throw ClientError.message("Anahtar kayıtlı hesapla eşleşmiyor. Hesap verileri değiştirilmedi; bağlantıyı yönet bölümünden yeniden giriş yap.")
+        }
         let repos = try await client.repositories(origin:origin,token:credential)
         try Task.checkCancellation()
-        guard generation == requestID else { return }
+        guard generation == requestID else { throw CancellationError() }
         let connected = ConnectionIdentity(origin:origin,login:user.login)
         try TokenVault.save(credential,account:connected.credentialKey)
         defaults.set(origin.absoluteString,forKey:"server")
         projects = repos.enumerated().map { idx,repo in repo.project(index:idx) }
-        identity = connected; offlineOnly = false; cacheNotice = nil
+        accountRevision = UUID(); identity = connected; offlineOnly = false; cacheNotice = nil
+        defaults.set(try JSONEncoder().encode(connected),forKey:"lastReadIdentity")
         do {
             try cache.save(CatalogSnapshot(projects:projects,fetchedAt:Date()),key:"catalog",identity:connected)
-            defaults.set(try JSONEncoder().encode(connected),forKey:"lastReadIdentity")
         } catch { cacheNotice = "Bağlandın; çevrimdışı kopya kaydedilemedi." }
         favorites = Set(defaults.stringArray(forKey:"favorites." + connected.scope) ?? [])
         pulls = []; login = user.login; live = true; error = nil
         hasChosenMode = true; defaults.set(true,forKey:"onboarding.v1.completed"); defaults.set("connected",forKey:"workspace.mode")
+        accounts.removeAll { $0.scope == connected.scope }; accounts.append(connected); persistAccounts(); loadDrafts()
     }
     func useDemo() {
-        generation = UUID(); busy = false
+        generation = UUID(); accountRevision = UUID(); busy = false
         identity = nil; offlineOnly = false; cacheNotice = nil
         favorites = Set(defaults.stringArray(forKey:"favorites.demo") ?? [Project.samples[0].fullName])
         hasChosenMode = true; defaults.set(true,forKey:"onboarding.v1.completed")
         defaults.set("demo",forKey:"workspace.mode")
         live = false; login = "Demo"; projects = Project.samples; pulls = PullRequest.samples; error = nil
+        loadDrafts()
     }
     func loadPulls(_ project: Project) async throws -> [PullRequest] {
         guard live else { return pulls.filter { $0.project.id == project.id } }
         return try await loadPullList(project).value.pulls
     }
     func disconnect() throws {
-        if let selected = identity ?? savedIdentity {
-            try TokenVault.delete(account:selected.credentialKey)
-            try TokenVault.delete(account:selected.origin.absoluteString)
-        }
-        try clearCache()
-        defaults.removeObject(forKey:"server")
-        useDemo()
-        hasChosenMode = false; defaults.set(false,forKey:"onboarding.v1.completed")
+        if let selected = identity ?? savedIdentity { try removeAccount(selected) }
     }
 }

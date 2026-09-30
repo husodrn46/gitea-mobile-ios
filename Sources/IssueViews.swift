@@ -111,6 +111,7 @@ struct IssueConversationView: View {
                                     withAnimation(appearance.animation(reduced:reduceMotion)) { composerExpanded = false }
                                 }.frame(minHeight:44).disabled(sending).accessibilityIdentifier("collapseComment")
                             }
+                            SendTargetView(repository:project.fullName)
                             TextEditor(text:$text).disabled(sending).focused($commentFocused).scrollContentBackground(.hidden)
                                 .frame(minHeight:140,maxHeight:220).padding(12).background(Color.surface,in:RoundedRectangle(cornerRadius:18))
                                 .overlay(RoundedRectangle(cornerRadius:18).strokeBorder(.secondary.opacity(0.2)))
@@ -214,14 +215,23 @@ struct IssueComposer: View {
     @State private var sending = false
     @State private var created: GiteaIssue?
     @State private var initialized = false
+    @State private var formIdentity: ConnectionIdentity?
+    @State private var accountChanged = false
     var project: Project? { workspace.projects.first { $0.fullName == projectName } }
     var edited: DraftIdea { var value = draft; value.title = title; value.text = bodyText; value.project = projectName; return value }
     var receipt: IssueWriteLedger.Receipt? { guard let identity = workspace.identity else { return nil }; return IssueWriteLedger.shared.receipt(identity:identity,operation:"create|\(projectName)|\(draft.id)") }
     var body: some View {
         Form {
-            if let project,let created { Section { Label("Konu #\(created.number) sunucuya kaydedildi",systemImage:"checkmark.circle.fill"); NavigationLink("Konuşmayı aç") { IssueDetailView(project:project,number:created.number) } } }
-
+            if let project,let created {
+                Section {
+                    Label("Konu #\(created.number) sunucuya kaydedildi",systemImage:"checkmark.circle.fill")
+                    SendTargetView(repository:project.fullName)
+                    Text("Yerel fikrin korundu.").font(.footnote)
+                    NavigationLink("Konuşmayı aç") { IssueDetailView(project:project,number:created.number) }
+                }
+            } else {
             Section("Fikrini konuya dönüştür") {
+                SendTargetView(repository:projectName)
                 Picker("Depo",selection:$projectName) { Text("Depo seç").tag(""); ForEach(workspace.projects) { Text($0.fullName).tag($0.fullName) } }.disabled(sending || created != nil)
                 TextField("Başlık",text:$title).disabled(sending || created != nil).accessibilityIdentifier("issueTitle")
                 TextEditor(text:$bodyText).disabled(sending || created != nil).frame(minHeight:150).accessibilityIdentifier("issueBody")
@@ -236,15 +246,16 @@ struct IssueComposer: View {
                     if let project { NavigationLink("Konuları kontrol et") { IssueListView(project:project) } }
                 }
             } else if created == nil {
-                Section { Button(sending ? "Gönderiliyor…" : "Konuyu gönder") { Task { await send() } }.disabled(sending || project == nil || workspace.offlineOnly || title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty).accessibilityIdentifier("createIssue") }
+                Section { Button(sending ? "Gönderiliyor…" : "Konuyu gönder") { Task { await send() } }.disabled(sending || project == nil || workspace.offlineOnly || accountChanged || title.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty).accessibilityIdentifier("createIssue") }
+            }
             }
         }.navigationTitle("Fikir → Konu").navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Kapat") { do { if initialized { try workspace.save(edited) }; dismiss() } catch { self.error = error.localizedDescription } }.disabled(sending) } }
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Kapat") { do { if initialized && !accountChanged { try workspace.save(edited) }; dismiss() } catch { self.error = error.localizedDescription } }.disabled(sending) } }
             .interactiveDismissDisabled(true)
             .sensoryFeedback(.success,trigger:created?.number) { _,new in new != nil && appearance.haptics }
             .animation(reduceMotion || !appearance.motion ? nil : .easeInOut(duration:0.2),value:created?.number)
-            .onAppear { if !initialized { title = draft.title; bodyText = draft.text; projectName = workspace.projects.first { $0.fullName == draft.project || $0.name == draft.project }?.fullName ?? ""; initialized = true } }
-            .onChange(of:workspace.identity?.scope) { _,_ in created = nil; projectName = ""; labels = []; people = []; options = nil }
+            .onAppear { if !initialized { formIdentity = workspace.identity; title = draft.title; bodyText = draft.text; projectName = workspace.projects.first { $0.fullName == draft.project || $0.name == draft.project }?.fullName ?? ""; initialized = true } }
+            .onChange(of:workspace.identity?.scope) { _,_ in accountChanged = true; error = "Hesap değişti. Bu form kapatıldı; yeni hesapta yeni bir gönderim formu aç."; created = nil; projectName = ""; labels = []; people = []; options = nil }
             .task(id:projectName) { await loadOptions() }
     }
     func loadOptions() async {
@@ -253,7 +264,7 @@ struct IssueComposer: View {
         catch { if !Task.isCancelled { self.error = "Etiket/sorumlu seçenekleri alınamadı: " + error.localizedDescription } }
     }
     func send() async {
-        guard let project else { return }; sending = true; error = nil; defer { sending = false }
+        guard !accountChanged,formIdentity == workspace.identity,let project else { return }; sending = true; error = nil; defer { sending = false }
         do { created = try await workspace.createIssue(draft:edited,project:project,labels:labels,assignees:people) }
         catch { self.error = error.localizedDescription }
     }
@@ -269,16 +280,20 @@ struct IssueMetadataEditor: View {
     @State private var people: Set<String> = []
     @State private var error: String?
     @State private var sending = false
+    @State private var formIdentity: ConnectionIdentity?
+    @State private var formRevision: UUID?
     @State private var appliedPeople: Set<String> = []
     @State private var appliedLabels: Set<Int> = []
     var body: some View {
         Form {
+            SendTargetView(repository:project.fullName)
             if let options { IssueSelectionFields(options:options,labels:$labels,people:$people).disabled(sending) } else if error == nil { ProgressView("Yetkiler alınıyor") }
             if let error { Text(error).foregroundStyle(Color.waiting) }
-            if options?.canManage == true { Button(sending ? "Kaydediliyor…" : "Değişiklikleri sunucuya kaydet") { Task { await save() } }.disabled(sending) }
+            if options?.canManage == true { Button(sending ? "Kaydediliyor…" : "Değişiklikleri sunucuya kaydet") { Task { await save() } }.disabled(sending || formIdentity != workspace.identity || formRevision != workspace.accountRevision) }
         }.navigationTitle("Etiket ve sorumlular")
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("Kapat") { dismiss() }.disabled(sending) } }.interactiveDismissDisabled(sending)
             .task {
+                formIdentity = workspace.identity; formRevision = workspace.accountRevision
                 do {
                     let fresh = try await workspace.freshIssue(project,number:issue.number)
                     labels = Set((fresh.labels ?? []).map(\.id)); people = Set((fresh.assignees ?? []).map(\.login))
@@ -288,10 +303,12 @@ struct IssueMetadataEditor: View {
             }
     }
     func save() async {
+        guard formIdentity == workspace.identity,formRevision == workspace.accountRevision else { error = "Hesap değişti; bu formu yeniden aç."; return }
         sending = true; defer { sending = false }; error = nil
         do {
             let path = try GiteaClient.issueRepoPath(project)+"/issues/\(issue.number)"
             let fresh = try await workspace.freshIssue(project,number:issue.number)
+            guard formIdentity == workspace.identity,formRevision == workspace.accountRevision else { throw CancellationError() }
             try IssueMetadataBaseline(people:appliedPeople,labels:appliedLabels).validate(fresh)
             if people != appliedPeople {
                 let _: GiteaIssue = try await workspace.issueWrite(EditIssuePeopleBody(assignees:people.sorted()),path:path,method:"PATCH",operation:"people|\(project.fullName)|\(issue.number)|\(issue.updated_at ?? "unknown")|\(people.sorted().joined(separator:","))",as:GiteaIssue.self)
@@ -300,6 +317,7 @@ struct IssueMetadataEditor: View {
             if labels != appliedLabels {
                 // A fresh read after the people write also catches changes during that request.
                 let current = try await workspace.freshIssue(project,number:issue.number)
+                guard formIdentity == workspace.identity,formRevision == workspace.accountRevision else { throw CancellationError() }
                 try IssueMetadataBaseline(people:appliedPeople,labels:appliedLabels).validate(current)
                 let _: [IssueLabel] = try await workspace.issueWrite(EditIssueLabelsBody(labels:labels.sorted()),path:path+"/labels",method:"PUT",operation:"labels|\(project.fullName)|\(issue.number)|\(issue.updated_at ?? "unknown")|\(labels.sorted())",as:[IssueLabel].self)
                 appliedLabels = labels

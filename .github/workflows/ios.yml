@@ -1,0 +1,39 @@
+name: iOS tests
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Select simulator and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcrun simctl list devices available --json > /tmp/gitea-simulators.json
+          device_id=$(python3 - <<'PYCODE'
+          import json
+          data = json.load(open('/tmp/gitea-simulators.json'))
+          for runtime, devices in sorted(data['devices'].items(), reverse=True):
+              if 'iOS-' not in runtime:
+                  continue
+              version = int(runtime.split('iOS-')[-1].split('-')[0])
+              if version < 26:
+                  continue
+              for device in devices:
+                  if device.get('isAvailable') and 'iPhone' in device['name']:
+                      print(device['udid'])
+                      raise SystemExit(0)
+          raise SystemExit('An iOS 26+ simulator is required')
+          PYCODE
+          )
+          xcodebuild -project KisiselGitea.xcodeproj -scheme KisiselGitea -destination "platform=iOS Simulator,id=$device_id" -only-testing:KisiselGiteaTests test

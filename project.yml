@@ -1,0 +1,48 @@
+name: KisiselGitea
+options:
+  bundleIdPrefix: com.husodrn46
+  deploymentTarget:
+    iOS: '26.0'
+settings:
+  base:
+    SWIFT_VERSION: '5.0'
+    TARGETED_DEVICE_FAMILY: '1,2'
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+    INFOPLIST_KEY_CFBundleDisplayName: 'Gitea Mobile'
+    INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+    INFOPLIST_KEY_NSFaceIDUsageDescription: 'Kişisel Gitea alanını yalnız cihaz kimliğinle açmak için Face ID kullanılır.'
+    CODE_SIGNING_ALLOWED: YES
+    "CODE_SIGN_IDENTITY[sdk=iphonesimulator*]": "-"
+    "CODE_SIGN_IDENTITY[sdk=iphoneos*]": "Apple Development"
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+targets:
+  KisiselGitea:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.husodrn46.kisiselgitea
+  KisiselGiteaTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests]
+    dependencies:
+      - target: KisiselGitea
+  KisiselGiteaUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: KisiselGitea
+schemes:
+  KisiselGitea:
+    build:
+      targets:
+        KisiselGitea: all
+    test:
+      targets:
+        - KisiselGiteaTests
+        - KisiselGiteaUITests

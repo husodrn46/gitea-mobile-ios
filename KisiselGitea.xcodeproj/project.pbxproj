@@ -1,0 +1,634 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		01B56360A9B611E78B3F11F5 /* IssueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABEB99CAF85772E587490282 /* IssueTests.swift */; };
+		0A303E0C7CDD5B4944F4D357 /* WorkflowUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3CD1344DDA15843BA771DF3 /* WorkflowUITests.swift */; };
+		128A853B7090B5F5125681B8 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED9CCC1D5E47B24C7FA9F0DC /* Models.swift */; };
+		1AFD025136222D092B33D696 /* RemoteModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99378D0E2A3D9BFDFC03C0AD /* RemoteModels.swift */; };
+		2966F488A9183D8ED46F0D81 /* SigningRenewalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16013F686D75941B8C75C3C9 /* SigningRenewalTests.swift */; };
+		2A00C1B2C5377D06A54315EF /* SigningRenewal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53F33745AF810829590DD8C6 /* SigningRenewal.swift */; };
+		2C8B5918C64BDC76E1EBC37D /* RemoteViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = E858F6B2FECD29EB58EEF3DE /* RemoteViews.swift */; };
+		359B5C329BB522076EE93D8B /* GiteaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 219C5CFEA34D99C5DC341DA3 /* GiteaClient.swift */; };
+		3D3D6CFE74D94B3A51A0B1E7 /* GiteaTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 950FBC38F5DB309AE64E2683 /* GiteaTests.swift */; };
+		476A8FB1BFC45FC6D2627531 /* TodayFeatures.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9B88DD926D4DED6F50E3658 /* TodayFeatures.swift */; };
+		4A164B48D9D0BC238F97A4CF /* Design.swift in Sources */ = {isa = PBXBuildFile; fileRef = C094CAF4C69D80D7A9A8F41F /* Design.swift */; };
+		4E0A85E37290459D0A073F80 /* Personalization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23138E731C51ECC7198A508F /* Personalization.swift */; };
+		56EF9915980ECD4EB2DCD847 /* PrivacyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDFE92AD3F81B71AEC41AEE7 /* PrivacyTests.swift */; };
+		5AECB089388FEF80C6FE75EB /* TodayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A791078C537FB729B8C34F2 /* TodayTests.swift */; };
+		5F70A70561E35C6BF836E8D2 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = 496E0338DE198AD54ACBECB8 /* App.swift */; };
+		67F9BDF90F621023758DFB78 /* SigningProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7273665C6BE255BD3FE50F3E /* SigningProfileTests.swift */; };
+		75C2DCDC38F4264F35C783CE /* PRWaitingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B70F2C293ACEB27737D406 /* PRWaitingTests.swift */; };
+		7A703CBB7B93510101A689EB /* IssueViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEAC93F5D25E4DB7DA24C0EA /* IssueViews.swift */; };
+		7B2C2047DA1A840B78371A90 /* RemoteFixture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 65D616ABFCA9CE75D55D720F /* RemoteFixture.swift */; };
+		7D089CC21C86A92EAF543CEA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0F3F32DBBCDC1C8C42F1E7CE /* Assets.xcassets */; };
+		7DB289FB7C233BE6E84454FE /* PersonalizationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC7935F5EF56CC4D6176544A /* PersonalizationUITests.swift */; };
+		8470B5F85FB81AB5FA6EE353 /* SigningRenewalUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AAE51E1386F30E2822B0794 /* SigningRenewalUITests.swift */; };
+		8F71C4E321A8F247BAE0A049 /* SigningProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AAF97E4ACB42D5E55BC173A /* SigningProfile.swift */; };
+		97B181DC102C8F03763ACBC5 /* PRReadiness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F645802B5085322196CCCFE /* PRReadiness.swift */; };
+		A4444A494ECCCCE8D5F82F58 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77C259E3FE7CB6DB63E0E358 /* Settings.swift */; };
+		A7A638DAD05948D12BE8BDD4 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BD2280A41AA560F4EF5C681 /* OnboardingUITests.swift */; };
+		AD16FBB761BD9DAFBC9A5B27 /* PrivacyUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF4BB9484BCF53FF586D39E0 /* PrivacyUITests.swift */; };
+		B76B0EB73AF3CC57BC0E84BE /* IssueModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A500687CC88EA17EB3A51C29 /* IssueModels.swift */; };
+		C484FB80F40DD60DDF9C29D4 /* AppPrivacy.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8C48F48B5C8CAD8DF76FF1D /* AppPrivacy.swift */; };
+		C6A36FF366B1D99C720E44ED /* PersonalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D762010001479A1DDF3114B /* PersonalizationTests.swift */; };
+		D1E0D0CF53C29F6BEADAEFE9 /* Welcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E6FEFD25CA76AE351C442F1 /* Welcome.swift */; };
+		D222E58E816C6DB58E599F09 /* RemoteFeatureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FA04B60C6F9122ADFFC7C95 /* RemoteFeatureTests.swift */; };
+		E52D13732E06E3A5C21B67DA /* ProductTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E57D8E3870850E9DF857AD52 /* ProductTests.swift */; };
+		F6DF5C79C674EBF563F13CD9 /* IssueClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DB6A6C07A7C78EBD744EDBD /* IssueClient.swift */; };
+		FE89EA556235E4FA8933FCF5 /* GiteaUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20C4A4628BE0767232C27FB /* GiteaUITests.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1575F29CB56FF3994B0761D5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 305A448531CBE267605F6419 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A19070600B9346463CE1BEA;
+			remoteInfo = KisiselGitea;
+		};
+		9B0E3029EC86DFD00E690F82 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 305A448531CBE267605F6419 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5A19070600B9346463CE1BEA;
+			remoteInfo = KisiselGitea;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0D762010001479A1DDF3114B /* PersonalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationTests.swift; sourceTree = "<group>"; };
+		0DB6A6C07A7C78EBD744EDBD /* IssueClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueClient.swift; sourceTree = "<group>"; };
+		0F3F32DBBCDC1C8C42F1E7CE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		16013F686D75941B8C75C3C9 /* SigningRenewalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningRenewalTests.swift; sourceTree = "<group>"; };
+		1AAE51E1386F30E2822B0794 /* SigningRenewalUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningRenewalUITests.swift; sourceTree = "<group>"; };
+		219C5CFEA34D99C5DC341DA3 /* GiteaClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaClient.swift; sourceTree = "<group>"; };
+		23138E731C51ECC7198A508F /* Personalization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Personalization.swift; sourceTree = "<group>"; };
+		2A791078C537FB729B8C34F2 /* TodayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayTests.swift; sourceTree = "<group>"; };
+		3AAF97E4ACB42D5E55BC173A /* SigningProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningProfile.swift; sourceTree = "<group>"; };
+		3E6FEFD25CA76AE351C442F1 /* Welcome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Welcome.swift; sourceTree = "<group>"; };
+		4313E2028FAC6D33256F43AE /* KisiselGiteaUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = KisiselGiteaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		496E0338DE198AD54ACBECB8 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
+		4BD2280A41AA560F4EF5C681 /* OnboardingUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingUITests.swift; sourceTree = "<group>"; };
+		53F33745AF810829590DD8C6 /* SigningRenewal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningRenewal.swift; sourceTree = "<group>"; };
+		55B70F2C293ACEB27737D406 /* PRWaitingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRWaitingTests.swift; sourceTree = "<group>"; };
+		65D616ABFCA9CE75D55D720F /* RemoteFixture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFixture.swift; sourceTree = "<group>"; };
+		7273665C6BE255BD3FE50F3E /* SigningProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigningProfileTests.swift; sourceTree = "<group>"; };
+		77C259E3FE7CB6DB63E0E358 /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		7FA04B60C6F9122ADFFC7C95 /* RemoteFeatureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFeatureTests.swift; sourceTree = "<group>"; };
+		91D0B780C3087FD09ABFC2F1 /* KisiselGiteaTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = KisiselGiteaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		950FBC38F5DB309AE64E2683 /* GiteaTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaTests.swift; sourceTree = "<group>"; };
+		99378D0E2A3D9BFDFC03C0AD /* RemoteModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteModels.swift; sourceTree = "<group>"; };
+		9F645802B5085322196CCCFE /* PRReadiness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRReadiness.swift; sourceTree = "<group>"; };
+		A500687CC88EA17EB3A51C29 /* IssueModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueModels.swift; sourceTree = "<group>"; };
+		ABEB99CAF85772E587490282 /* IssueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueTests.swift; sourceTree = "<group>"; };
+		B20C4A4628BE0767232C27FB /* GiteaUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GiteaUITests.swift; sourceTree = "<group>"; };
+		BC7935F5EF56CC4D6176544A /* PersonalizationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersonalizationUITests.swift; sourceTree = "<group>"; };
+		C05D933E0752FABDDBC5DE21 /* KisiselGitea.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = KisiselGitea.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C094CAF4C69D80D7A9A8F41F /* Design.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Design.swift; sourceTree = "<group>"; };
+		DDFE92AD3F81B71AEC41AEE7 /* PrivacyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyTests.swift; sourceTree = "<group>"; };
+		DF4BB9484BCF53FF586D39E0 /* PrivacyUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyUITests.swift; sourceTree = "<group>"; };
+		E3CD1344DDA15843BA771DF3 /* WorkflowUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkflowUITests.swift; sourceTree = "<group>"; };
+		E57D8E3870850E9DF857AD52 /* ProductTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductTests.swift; sourceTree = "<group>"; };
+		E858F6B2FECD29EB58EEF3DE /* RemoteViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViews.swift; sourceTree = "<group>"; };
+		E9B88DD926D4DED6F50E3658 /* TodayFeatures.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayFeatures.swift; sourceTree = "<group>"; };
+		ED9CCC1D5E47B24C7FA9F0DC /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		F8C48F48B5C8CAD8DF76FF1D /* AppPrivacy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPrivacy.swift; sourceTree = "<group>"; };
+		FEAC93F5D25E4DB7DA24C0EA /* IssueViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueViews.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		1EB87AFA991E01B17CF49F86 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C05D933E0752FABDDBC5DE21 /* KisiselGitea.app */,
+				91D0B780C3087FD09ABFC2F1 /* KisiselGiteaTests.xctest */,
+				4313E2028FAC6D33256F43AE /* KisiselGiteaUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3A2FC2E1B8415FD05B901C89 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				B20C4A4628BE0767232C27FB /* GiteaUITests.swift */,
+				4BD2280A41AA560F4EF5C681 /* OnboardingUITests.swift */,
+				BC7935F5EF56CC4D6176544A /* PersonalizationUITests.swift */,
+				DF4BB9484BCF53FF586D39E0 /* PrivacyUITests.swift */,
+				1AAE51E1386F30E2822B0794 /* SigningRenewalUITests.swift */,
+				E3CD1344DDA15843BA771DF3 /* WorkflowUITests.swift */,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		B30BE1974E80694C63D75F53 = {
+			isa = PBXGroup;
+			children = (
+				F42BD0C36A006CE6E238200A /* Sources */,
+				CECE7B5F0B5EFB78A9C336FD /* Tests */,
+				3A2FC2E1B8415FD05B901C89 /* UITests */,
+				1EB87AFA991E01B17CF49F86 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CECE7B5F0B5EFB78A9C336FD /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				950FBC38F5DB309AE64E2683 /* GiteaTests.swift */,
+				ABEB99CAF85772E587490282 /* IssueTests.swift */,
+				0D762010001479A1DDF3114B /* PersonalizationTests.swift */,
+				DDFE92AD3F81B71AEC41AEE7 /* PrivacyTests.swift */,
+				E57D8E3870850E9DF857AD52 /* ProductTests.swift */,
+				55B70F2C293ACEB27737D406 /* PRWaitingTests.swift */,
+				7FA04B60C6F9122ADFFC7C95 /* RemoteFeatureTests.swift */,
+				7273665C6BE255BD3FE50F3E /* SigningProfileTests.swift */,
+				16013F686D75941B8C75C3C9 /* SigningRenewalTests.swift */,
+				2A791078C537FB729B8C34F2 /* TodayTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
+		F42BD0C36A006CE6E238200A /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				496E0338DE198AD54ACBECB8 /* App.swift */,
+				F8C48F48B5C8CAD8DF76FF1D /* AppPrivacy.swift */,
+				0F3F32DBBCDC1C8C42F1E7CE /* Assets.xcassets */,
+				C094CAF4C69D80D7A9A8F41F /* Design.swift */,
+				219C5CFEA34D99C5DC341DA3 /* GiteaClient.swift */,
+				0DB6A6C07A7C78EBD744EDBD /* IssueClient.swift */,
+				A500687CC88EA17EB3A51C29 /* IssueModels.swift */,
+				FEAC93F5D25E4DB7DA24C0EA /* IssueViews.swift */,
+				ED9CCC1D5E47B24C7FA9F0DC /* Models.swift */,
+				23138E731C51ECC7198A508F /* Personalization.swift */,
+				9F645802B5085322196CCCFE /* PRReadiness.swift */,
+				65D616ABFCA9CE75D55D720F /* RemoteFixture.swift */,
+				99378D0E2A3D9BFDFC03C0AD /* RemoteModels.swift */,
+				E858F6B2FECD29EB58EEF3DE /* RemoteViews.swift */,
+				77C259E3FE7CB6DB63E0E358 /* Settings.swift */,
+				3AAF97E4ACB42D5E55BC173A /* SigningProfile.swift */,
+				53F33745AF810829590DD8C6 /* SigningRenewal.swift */,
+				E9B88DD926D4DED6F50E3658 /* TodayFeatures.swift */,
+				3E6FEFD25CA76AE351C442F1 /* Welcome.swift */,
+			);
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		53C85067F676D200A7619B39 /* KisiselGiteaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CB600F9E0A3DFE07B5FA4FAE /* Build configuration list for PBXNativeTarget "KisiselGiteaTests" */;
+			buildPhases = (
+				EC55623577A33D87FE9FB0A3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				2031BBE9682BD9A43E122593 /* PBXTargetDependency */,
+			);
+			name = KisiselGiteaTests;
+			packageProductDependencies = (
+			);
+			productName = KisiselGiteaTests;
+			productReference = 91D0B780C3087FD09ABFC2F1 /* KisiselGiteaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		5A19070600B9346463CE1BEA /* KisiselGitea */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 16507C918F5A84BDF5F4FEC8 /* Build configuration list for PBXNativeTarget "KisiselGitea" */;
+			buildPhases = (
+				68D693E6B3F3FC6F260CCA06 /* Sources */,
+				02DC2DACC94A9F841E88BF92 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = KisiselGitea;
+			packageProductDependencies = (
+			);
+			productName = KisiselGitea;
+			productReference = C05D933E0752FABDDBC5DE21 /* KisiselGitea.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BBF2DE5E8878F4E96FD09DA5 /* KisiselGiteaUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F9C677C275671C0B1223082B /* Build configuration list for PBXNativeTarget "KisiselGiteaUITests" */;
+			buildPhases = (
+				89C425EC29411EAC10E0F720 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9E8E5EDD48791C29C2051491 /* PBXTargetDependency */,
+			);
+			name = KisiselGiteaUITests;
+			packageProductDependencies = (
+			);
+			productName = KisiselGiteaUITests;
+			productReference = 4313E2028FAC6D33256F43AE /* KisiselGiteaUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		305A448531CBE267605F6419 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					BBF2DE5E8878F4E96FD09DA5 = {
+						TestTargetID = 5A19070600B9346463CE1BEA;
+					};
+				};
+			};
+			buildConfigurationList = 4D86377F1D2C5FC6F12B229C /* Build configuration list for PBXProject "KisiselGitea" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = B30BE1974E80694C63D75F53;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1EB87AFA991E01B17CF49F86 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5A19070600B9346463CE1BEA /* KisiselGitea */,
+				53C85067F676D200A7619B39 /* KisiselGiteaTests */,
+				BBF2DE5E8878F4E96FD09DA5 /* KisiselGiteaUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		02DC2DACC94A9F841E88BF92 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7D089CC21C86A92EAF543CEA /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		68D693E6B3F3FC6F260CCA06 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5F70A70561E35C6BF836E8D2 /* App.swift in Sources */,
+				C484FB80F40DD60DDF9C29D4 /* AppPrivacy.swift in Sources */,
+				4A164B48D9D0BC238F97A4CF /* Design.swift in Sources */,
+				359B5C329BB522076EE93D8B /* GiteaClient.swift in Sources */,
+				F6DF5C79C674EBF563F13CD9 /* IssueClient.swift in Sources */,
+				B76B0EB73AF3CC57BC0E84BE /* IssueModels.swift in Sources */,
+				7A703CBB7B93510101A689EB /* IssueViews.swift in Sources */,
+				128A853B7090B5F5125681B8 /* Models.swift in Sources */,
+				97B181DC102C8F03763ACBC5 /* PRReadiness.swift in Sources */,
+				4E0A85E37290459D0A073F80 /* Personalization.swift in Sources */,
+				7B2C2047DA1A840B78371A90 /* RemoteFixture.swift in Sources */,
+				1AFD025136222D092B33D696 /* RemoteModels.swift in Sources */,
+				2C8B5918C64BDC76E1EBC37D /* RemoteViews.swift in Sources */,
+				A4444A494ECCCCE8D5F82F58 /* Settings.swift in Sources */,
+				8F71C4E321A8F247BAE0A049 /* SigningProfile.swift in Sources */,
+				2A00C1B2C5377D06A54315EF /* SigningRenewal.swift in Sources */,
+				476A8FB1BFC45FC6D2627531 /* TodayFeatures.swift in Sources */,
+				D1E0D0CF53C29F6BEADAEFE9 /* Welcome.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		89C425EC29411EAC10E0F720 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE89EA556235E4FA8933FCF5 /* GiteaUITests.swift in Sources */,
+				A7A638DAD05948D12BE8BDD4 /* OnboardingUITests.swift in Sources */,
+				7DB289FB7C233BE6E84454FE /* PersonalizationUITests.swift in Sources */,
+				AD16FBB761BD9DAFBC9A5B27 /* PrivacyUITests.swift in Sources */,
+				8470B5F85FB81AB5FA6EE353 /* SigningRenewalUITests.swift in Sources */,
+				0A303E0C7CDD5B4944F4D357 /* WorkflowUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EC55623577A33D87FE9FB0A3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3D3D6CFE74D94B3A51A0B1E7 /* GiteaTests.swift in Sources */,
+				01B56360A9B611E78B3F11F5 /* IssueTests.swift in Sources */,
+				75C2DCDC38F4264F35C783CE /* PRWaitingTests.swift in Sources */,
+				C6A36FF366B1D99C720E44ED /* PersonalizationTests.swift in Sources */,
+				56EF9915980ECD4EB2DCD847 /* PrivacyTests.swift in Sources */,
+				E52D13732E06E3A5C21B67DA /* ProductTests.swift in Sources */,
+				D222E58E816C6DB58E599F09 /* RemoteFeatureTests.swift in Sources */,
+				67F9BDF90F621023758DFB78 /* SigningProfileTests.swift in Sources */,
+				2966F488A9183D8ED46F0D81 /* SigningRenewalTests.swift in Sources */,
+				5AECB089388FEF80C6FE75EB /* TodayTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		2031BBE9682BD9A43E122593 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A19070600B9346463CE1BEA /* KisiselGitea */;
+			targetProxy = 9B0E3029EC86DFD00E690F82 /* PBXContainerItemProxy */;
+		};
+		9E8E5EDD48791C29C2051491 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5A19070600B9346463CE1BEA /* KisiselGitea */;
+			targetProxy = 1575F29CB56FF3994B0761D5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0F12E041B76150BC934850BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.husodrn46.KisiselGiteaUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KisiselGitea;
+			};
+			name = Debug;
+		};
+		3B1A552F53B7EC1B0E2A4DFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.husodrn46.KisiselGiteaTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KisiselGitea.app/KisiselGitea";
+			};
+			name = Debug;
+		};
+		4E959291AD37999D023C9EB6 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.husodrn46.kisiselgitea;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		57FD922B40D41344A41FE691 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.husodrn46.KisiselGiteaTests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KisiselGitea.app/KisiselGitea";
+			};
+			name = Release;
+		};
+		5D3E92D62C9180801ACF85B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.husodrn46.kisiselgitea;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		7FB6E3D2600917E5DE5284A3 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.husodrn46.KisiselGiteaUITests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = KisiselGitea;
+			};
+			name = Release;
+		};
+		B8F207C410AF1FC05AAB4D54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Gitea Mobile";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Kişisel Gitea alanını yalnız cihaz kimliğinle açmak için Face ID kullanılır.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E8142BB213532A1BE95203A2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGNING_ALLOWED = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphonesimulator*]" = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Gitea Mobile";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Kişisel Gitea alanını yalnız cihaz kimliğinle açmak için Face ID kullanılır.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		16507C918F5A84BDF5F4FEC8 /* Build configuration list for PBXNativeTarget "KisiselGitea" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4E959291AD37999D023C9EB6 /* Debug */,
+				5D3E92D62C9180801ACF85B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		4D86377F1D2C5FC6F12B229C /* Build configuration list for PBXProject "KisiselGitea" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B8F207C410AF1FC05AAB4D54 /* Debug */,
+				E8142BB213532A1BE95203A2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CB600F9E0A3DFE07B5FA4FAE /* Build configuration list for PBXNativeTarget "KisiselGiteaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3B1A552F53B7EC1B0E2A4DFE /* Debug */,
+				57FD922B40D41344A41FE691 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		F9C677C275671C0B1223082B /* Build configuration list for PBXNativeTarget "KisiselGiteaUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0F12E041B76150BC934850BC /* Debug */,
+				7FB6E3D2600917E5DE5284A3 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 305A448531CBE267605F6419 /* Project object */;
+}

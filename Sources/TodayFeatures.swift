@@ -126,6 +126,8 @@ struct RemoteTodayView: View {
     @State private var choosing = false
     @State private var category: TodayCategory? = nil
     @State private var runID = UUID()
+    @State private var coverageExpanded = false
+    @State private var changesExpanded = false
     @State private var lists: [String: ReadResult<PullListSnapshot>] = [:]
     @State private var pendingDetails: [PullRequest] = []
     @State private var detailFailures = 0
@@ -134,38 +136,42 @@ struct RemoteTodayView: View {
     var taskKey: String { (workspace.identity?.scope ?? "none") + "|" + String(workspace.offlineOnly) }
     var body: some View {
         VStack(alignment:.leading,spacing:appearance.layout.density.gap) {
-            let header = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment:.leading,spacing:12)) : AnyLayout(HStackLayout())
-            header {
-                Text("İş kuyruğun").font(.title2.bold()).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("todayQueueTitle")
-                if !typeSize.isAccessibilitySize { Spacer() }
-                Button("Projeler") { choosing = true }.buttonStyle(.glass).accessibilityIdentifier("todayProjects")
+            HStack(alignment:.firstTextBaseline) {
+                Text("İş kuyruğun").font(.title2.bold()).accessibilityIdentifier("todayQueueTitle")
+                Spacer()
+                ContextInfoButton(title:"Kuyruğun kaynağı",details:"Seçili projelerdeki açık PR’lar, açık inceleme istekleri ve commit test durumları okunur. Uyarı varsa sayılar yalnız okunabilen kayıtlara aittir.")
+                Button { Task { await load() } } label: { Image(systemName:"arrow.clockwise").frame(width:44,height:44) }
+                    .buttonStyle(.plain).disabled(loading || selected.isEmpty).accessibilityLabel("Kuyruğu yenile")
             }
             if appearance.layout.showDailySummary && !loading && !rows.isEmpty {
-                Text(dailySummary).font(.headline).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("todaySummary")
+                Text(dailySummary).font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true).accessibilityIdentifier("todaySummary")
             }
-            HStack {
-                Text("\(selected.count) seçili proje").font(.caption).foregroundStyle(.secondary)
+            HStack(spacing:12) {
+                Button { choosing = true } label: { Label("\(selected.count) proje",systemImage:"folder") }.accessibilityLabel("Projeler").accessibilityIdentifier("todayProjects")
                 Spacer()
-                Button { Task { await load() } } label: { Image(systemName:"arrow.clockwise").frame(width:44,height:44) }
-                    .buttonStyle(.glass).disabled(loading || selected.isEmpty).accessibilityLabel("Kuyruğu yenile")
-                ContextInfoButton(title:"Kuyruğun kaynağı",details:"Seçili projelerdeki açık PR’lar, açık inceleme istekleri ve commit test durumları okunur. Bir PR hem inceleme hem test sayısına dahil olabilir. Etiket veya atama sıradaki kişiyi belirlemez. Uyarı varsa sayılar yalnız okunabilen kayıtlara aittir.")
-            }
-            ScrollView(.horizontal,showsIndicators:false) {
-                HStack {
-                    Button("Tümü") { category = nil }.buttonStyle(.glass).tint(category == nil ? .accentColor : .secondary)
-                    ForEach(TodayCategory.allCases) { item in
-                        Button(item.rawValue) { category = item }.buttonStyle(.glass).tint(category == item ? .accentColor : .secondary)
-                    }
-                }.padding(.vertical,4)
-            }
-            if loading { ProgressView("Seçili projeler okunuyor…") }
-            if !pendingDetails.isEmpty || detailFailures > 0 {
-                Text("\(pendingDetails.count + detailFailures) yüklenen PR henüz doğrulanmadı. Bu PR’lar hazır veya sağlıklı sayılmıyor.").font(.footnote).foregroundStyle(Color.waiting)
-            }
-            if !pendingDetails.isEmpty { Button("Sonraki 10 PR’ı incele") { Task { await details(run:runID) } }.buttonStyle(.glass).disabled(loading).accessibilityIdentifier("moreTodayDetails") }
-            if lists.values.contains(where: { $0.value.hasMore }) {
-                Text("PR listelerinde okunmamış sayfalar var; toplam açık PR sayısı henüz bilinmiyor.").font(.footnote).foregroundStyle(.secondary)
-                Button("Sonraki PR sayfasını getir") { Task { await moreList() } }.buttonStyle(.glass).disabled(loading || workspace.offlineOnly).accessibilityIdentifier("moreTodayPulls")
+                Menu {
+                    Button("Tümü") { category = nil }
+                    ForEach(TodayCategory.allCases) { item in Button(item.rawValue) { category = item } }
+                } label: { Label(category?.rawValue ?? "Tümü",systemImage:"line.3.horizontal.decrease") }.accessibilityIdentifier("todayFilter")
+            }.font(.subheadline).buttonStyle(.plain).padding(.bottom,4)
+            if loading { ProgressView("Seçili projeler okunuyor…").font(.footnote) }
+            if !pendingDetails.isEmpty || detailFailures > 0 || lists.values.contains(where: { $0.value.hasMore }) {
+                DisclosureGroup(isExpanded:$coverageExpanded) {
+                    VStack(alignment:.leading,spacing:12) {
+                        if !pendingDetails.isEmpty || detailFailures > 0 {
+                            Text("\(pendingDetails.count + detailFailures) yüklenen PR henüz doğrulanmadı. Bu PR’lar hazır veya sağlıklı sayılmıyor.").font(.footnote).foregroundStyle(.secondary)
+                        }
+                        if !pendingDetails.isEmpty { Button("Sonraki 10 PR’ı incele") { Task { await details(run:runID) } }.buttonStyle(.bordered).disabled(loading).accessibilityIdentifier("moreTodayDetails") }
+                        if lists.values.contains(where: { $0.value.hasMore }) {
+                            Text("PR listelerinde okunmamış sayfalar var; toplam açık PR sayısı henüz bilinmiyor.").font(.footnote).foregroundStyle(.secondary)
+                            Button("Sonraki PR sayfasını getir") { Task { await moreList() } }.buttonStyle(.bordered).disabled(loading || workspace.offlineOnly).accessibilityIdentifier("moreTodayPulls")
+                        }
+                    }.padding(.top,10)
+                } label: {
+                    Text("\(rows.count) incelendi · \(pendingDetails.count + detailFailures) bekliyor" + (lists.values.contains(where: { $0.value.hasMore }) ? " · Liste eksik" : ""))
+                        .font(.caption).foregroundStyle(.secondary).frame(minHeight:28,alignment:.leading).contentShape(Rectangle())
+                        .accessibilityIdentifier("todayCoverageLabel")
+                }.disclosureGroupStyle(QuietDisclosureStyle(animation:appearance.animation(reduced:reduced))).tint(.primary).accessibilityElement(children:.contain).padding(10).background(Color.surface,in:RoundedRectangle(cornerRadius:14))
             }
             ForEach(Array(notices.enumerated()),id:\.offset) { _,notice in Text(notice).font(.footnote).foregroundStyle(Color.waiting) }
             if selected.isEmpty {
@@ -173,7 +179,7 @@ struct RemoteTodayView: View {
             } else if !loading && rows.isEmpty {
                 Text(notices.isEmpty ? "Seçili projelerde açık PR yok." : "Kuyruk tamamen doğrulanamadı. Yukarıdaki uyarıları incele.").foregroundStyle(.secondary)
             }
-            if appearance.layout.showChanges && !rows.isEmpty { changesSection }
+            if appearance.layout.showChanges && rows.contains(where: { !$0.changes.isEmpty }) { changesSection }
             ForEach(visibleRows) { row in
                 Surface {
                     let cardLayout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment:.leading,spacing:8)) : AnyLayout(HStackLayout(alignment:.top,spacing:6))
@@ -200,6 +206,7 @@ struct RemoteTodayView: View {
                     }
                 }
             }
+            if appearance.layout.showChanges && !rows.isEmpty && !rows.contains(where: { !$0.changes.isEmpty }) { changesSection }
             if !rows.isEmpty,let category,!rows.contains(where: { TodayCategory.classify($0.result.value,login:workspace.identity?.login ?? "").contains(category) }) {
                 Text("Bu filtrede PR yok.").foregroundStyle(.secondary)
             }
@@ -243,20 +250,27 @@ struct RemoteTodayView: View {
                     ContextInfoButton(title:"Değişikliklerin kaynağı",details:changeExplanation)
                 }
             } else {
-                HStack {
-                    Text("Ben yokken ne oldu?").font(.title3.bold()).accessibilityIdentifier("todayChangesTitle")
-                    Spacer()
-                    ContextInfoButton(title:"Değişikliklerin kaynağı",details:changeExplanation)
-                }
-                ForEach(changed) { row in
-                    NavigationLink { PullDestination(pull:row.pull) } label: {
-                        VStack(alignment:.leading,spacing:5) {
-                            Text("\(row.pull.project.name) #\(row.pull.id)").font(.headline)
-                            ForEach(row.changes,id:\.self) { Text($0).font(.subheadline) }
-                        }.frame(maxWidth:.infinity,alignment:.leading)
-                    }.buttonStyle(.plain)
-                }
-                Button("Değişiklikleri gördüm") { acknowledge() }.buttonStyle(.glass).accessibilityIdentifier("todayAcknowledge")
+                DisclosureGroup(isExpanded:$changesExpanded) {
+                    VStack(alignment:.leading,spacing:14) {
+                        ForEach(changed) { row in
+                            NavigationLink { PullDestination(pull:row.pull) } label: {
+                                VStack(alignment:.leading,spacing:5) {
+                                    Text("\(row.pull.project.name) #\(row.pull.id)").font(.headline)
+                                    ForEach(row.changes,id:\.self) { Text($0).font(.subheadline) }
+                                }.frame(maxWidth:.infinity,alignment:.leading)
+                            }.buttonStyle(.plain)
+                        }
+                        HStack {
+                            Button("Değişiklikleri gördüm") { acknowledge() }.buttonStyle(.bordered).accessibilityIdentifier("todayAcknowledge")
+                            Spacer()
+                            ContextInfoButton(title:"Değişikliklerin kaynağı",details:changeExplanation)
+                        }
+                    }.padding(.top,10)
+                } label: {
+                    Text("Ben yokken ne oldu? · \(changed.count) PR").font(.subheadline.weight(.medium))
+                        .frame(minHeight:32,alignment:.leading).contentShape(Rectangle())
+                        .accessibilityIdentifier("todayChangesTitle")
+                }.disclosureGroupStyle(QuietDisclosureStyle(animation:appearance.animation(reduced:reduced))).tint(.primary)
             }
         }
     }

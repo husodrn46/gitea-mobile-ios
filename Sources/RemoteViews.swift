@@ -203,52 +203,54 @@ struct RemoteInboxView: View {
     @State private var unreadOnly = true
     @State private var marking: Int?
     var body: some View {
-        VStack(alignment:.leading,spacing:18) {
-            HStack {
-                Toggle("Yalnız okunmamış",isOn:$unreadOnly)
-                ContextInfoButton(title:"Gelen kutusu hakkında",details:"Bildirimler konu başına toplanır. Bir kart yorum sayısı değildir. Konuyu açmak sunucuda okundu işaretlemez.")
+        VStack(alignment:.leading,spacing:16) {
+            HStack(spacing:12) {
+                Picker("Bildirim filtresi",selection:$unreadOnly) { Text("Okunmamış").tag(true); Text("Tümü").tag(false) }.pickerStyle(.segmented)
+                Button("Yenile",systemImage:"arrow.clockwise") { Task { await load() } }.labelStyle(.iconOnly).buttonStyle(.plain).frame(width:44,height:44).disabled(marking != nil)
             }
             if let result {
                 FreshnessView(date:result.value.fetchedAt,cached:result.cached,note:result.note)
                 let rows = result.value.threads.filter { !unreadOnly || $0.unread }
                 if rows.isEmpty { ContentUnavailableView("Bildirim yok",systemImage:"bell.slash",description:Text("Bu filtrede bildirim bulunmuyor.")) }
                 ForEach(rows) { thread in
-                    if let identity = workspace.identity,let pull = thread.nativePull(origin:identity.origin) {
-                        NavigationLink { RemotePRView(pull:pull) } label: {
-                            notificationCard(thread,native:true)
-                        }.buttonStyle(.plain).accessibilityIdentifier("notification-\(thread.id)")
-                    } else if let identity = workspace.identity,let number = thread.nativeIssue(origin:identity.origin) {
-                        NavigationLink { IssueDetailView(project:thread.repository.project(index:0),number:number) } label: { notificationCard(thread,native:true) }.buttonStyle(.plain).accessibilityIdentifier("notification-\(thread.id)")
-                    } else {
-                        notificationCard(thread,native:false)
-                    }
-                    if thread.unread {
-                        SendTargetView(repository:thread.repository.full_name)
-                        Button(marking == thread.id ? "Doğrulanıyor…" : "Okundu işaretle") { Task { await mark(thread) } }
-                            .buttonStyle(.glass).disabled(workspace.offlineOnly || marking != nil).accessibilityIdentifier("markRead-\(thread.id)")
+                    Surface {
+                        VStack(alignment:.leading,spacing:14) {
+                            if let identity = workspace.identity,let pull = thread.nativePull(origin:identity.origin) {
+                                NavigationLink { RemotePRView(pull:pull) } label: { notificationContent(thread,native:true) }.buttonStyle(.plain).accessibilityIdentifier("notification-\(thread.id)")
+                            } else if let identity = workspace.identity,let number = thread.nativeIssue(origin:identity.origin) {
+                                NavigationLink { IssueDetailView(project:thread.repository.project(index:0),number:number) } label: { notificationContent(thread,native:true) }.buttonStyle(.plain).accessibilityIdentifier("notification-\(thread.id)")
+                            } else { notificationContent(thread,native:false) }
+                            if thread.unread {
+                                Divider()
+                                HStack(alignment:.center,spacing:12) {
+                                    if let identity = workspace.identity { Text("\(identity.login)\n\(identity.origin.host ?? identity.origin.absoluteString)").font(.caption2).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true) }
+                                    Spacer(minLength:0)
+                                    Button { Task { await mark(thread) } } label: {
+                                        Label(marking == thread.id ? "Doğrulanıyor…" : "Okundu işaretle",systemImage:"checkmark")
+                                    }.font(.subheadline.weight(.medium)).buttonStyle(.plain).frame(minHeight:44).disabled(workspace.offlineOnly || marking != nil).accessibilityIdentifier("markRead-\(thread.id)")
+                                }
+                            }
+                        }
                     }
                 }
             } else if let error { Text(error).foregroundStyle(Color.waiting) }
             else { ProgressView("Bildirimler alınıyor") }
             if result != nil,let error { Text(error).foregroundStyle(Color.waiting) }
-            Button("Yenile") { Task { await load() } }.buttonStyle(.glass).disabled(marking != nil)
+            ContextInfoButton(title:"Gelen kutusu hakkında",details:"Bildirimler konu başına toplanır. Bir kart yorum sayısı değildir. Konuyu açmak sunucuda okundu işaretlemez.")
+                .frame(maxWidth:.infinity,alignment:.trailing)
         }.task(id:workspace.identity?.scope) { await load() }
     }
-    func notificationCard(_ thread: NotificationThread,native: Bool) -> some View {
-        Surface {
-            VStack(alignment:.leading,spacing:9) {
-                HStack {
-                    Text(thread.repository.full_name).font(.caption).foregroundStyle(.secondary)
-                    Spacer()
-                    if native { Image(systemName:"chevron.right").font(.caption).foregroundStyle(.secondary) }
-                }
-                Text(thread.subject.title).font(.headline).foregroundStyle(.primary)
-                Text("\(thread.typeLabel) · \(thread.unread ? "Okunmamış" : "Okunmuş")").font(.caption).foregroundStyle(.secondary)
-                if !native,let identity = workspace.identity,let url = GiteaClient.safeLink(thread.subject.html_url,origin:identity.origin) {
-                    Link("Gitea’da aç",destination:url).font(.subheadline)
-                }
-            }.frame(maxWidth:.infinity,alignment:.leading)
-        }
+    func notificationContent(_ thread: NotificationThread,native: Bool) -> some View {
+        VStack(alignment:.leading,spacing:8) {
+            HStack {
+                Text(thread.repository.full_name).font(.caption).foregroundStyle(.secondary)
+                Spacer()
+                if native { Image(systemName:"chevron.right").font(.caption).foregroundStyle(.tertiary) }
+            }
+            Text(thread.subject.title).font(.headline).foregroundStyle(.primary)
+            Text("\(thread.typeLabel) · \(thread.unread ? "Okunmamış" : "Okunmuş")").font(.caption).foregroundStyle(.secondary)
+            if !native,let identity = workspace.identity,let url = GiteaClient.safeLink(thread.subject.html_url,origin:identity.origin) { Link("Gitea’da aç",destination:url).font(.subheadline) }
+        }.frame(maxWidth:.infinity,alignment:.leading).contentShape(Rectangle())
     }
     func mark(_ thread: NotificationThread) async {
         let selected = workspace.identity; let revision = workspace.accountRevision

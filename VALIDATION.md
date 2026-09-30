@@ -1,5 +1,21 @@
 # Doğrulama — 30 Eylül 2026
 
+## Tasarım sadeleştirme — 30 Eylül 2026
+
+Yalnız mevcut ekran sunumu değişti. API, kimlik doğrulama, önbellek, yazma doğrulaması ve fikir saklama modeli değiştirilmedi.
+
+- Bugün: küçük gezinme başlığı, tek proje/filtre satırı, sade yenileme; kapsam ve değişiklik geçmişi açılır özet. Doğrulanmamış PR sayısı kapalı özette de görünür. Boş değişiklik bilgisi listenin sonuna alındı.
+- Gelen kutusu: okunmamış/tümü filtresi, aynı kartın içinde hedef hesap/sunucu ve açık okundu hareketi. Ayrı ayrı yüzen işlem blokları kaldırıldı.
+- Hesaplar: sade hesap satırları; seçili hesap işareti. Mevcut bağlantı, çevrimdışı seçim ve onaylı kaldırma işlemleri hesaba dokununca açılan panelde.
+- Profil: hesap/bağlantı ile kişiselleştirme ayrıldı; çevrimdışı ayrıntıları ve uygulama açıklaması açılır alanlara taşındı.
+- Projeler: filtre etrafındaki ikinci cam yüzey kaldırıldı. Mor vurgu, cihaz temasına uyum ve kişiselleştirme ayarları korundu.
+
+Tasarım dili: SF sistem yazısı; sayfa başlığı gezinmede, bölüm başlığı title2, içerik headline/subheadline, bağlam caption. Açık zemin #F3F3F7, açık yüzey #FFFFFF, mevcut mor #7044BC; koyu zemin #131418 ve koyu mor #BC9CFF. Cam ana iOS gezinmesine bırakıldı; içerik işlemleri düz veya bordered. İçerik sola hizalı, açıklama ve yönetim işlemleri ikinci planda.
+
+Son simülatör koşusunda 4 mevcut akış geçti: tek bildirim okundu, hesap panelinden seçim, açılır kapsam içinden 10’luk yükleme ve değişiklik geçmişi/PR navigasyonu. Ayrı koşuda koyu tema ve erişilebilirlikte en büyük yazı ile mevcut proje/konu akışı geçti. Yeni görüntüler görsel olarak incelendi. Açılır grubun erişilebilirlik kimliğinin alt düğmeleri ezmesi testte tespit edildi ve son geçen koşudan önce düzeltildi.
+
+Kanıt: `/private/tmp/gitea-design-pass-ui-20260930.xcresult`; büyük yazı/koyu tema: `/private/tmp/gitea-design-ui-20260930.xcresult`. Fiziksel telefona yükleme yapılmadı. Aşağıdaki 105 birim testi, önceki işlev geliştirme aşamasının kanıtıdır; tasarım aşamasında tekrarlanmadı.
+
 ## Açık issue geliştirmeleri (#1–#4)
 
 - Son kaynakla **105 birim testi geçti** (86 mevcut + 19 yeni regresyon).

@@ -19,12 +19,14 @@ final class IssueResolutionUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["reader"].waitForExistence(timeout:5))
         XCTAssertTrue(app.staticTexts["https://second-fixture.invalid"].exists)
         let screenshot = XCTAttachment(screenshot:app.screenshot()); screenshot.name = "saved-account-picker"; screenshot.lifetime = .keepAlways; add(screenshot)
-        app.buttons.matching(identifier:"Hesabı seç").element(boundBy:1).tap()
+        app.buttons["account-reader-fixture.invalid"].tap()
+        XCTAssertTrue(app.buttons["Hesabı seç"].waitForExistence(timeout:3))
+        app.buttons["Hesabı seç"].tap()
         XCTAssertTrue(app.staticTexts["reader"].firstMatch.waitForExistence(timeout:5))
         XCTAssertTrue(app.buttons["reconnectLive"].exists)
     }
     func testTodayLoadsDetailsInGroupsAndReportsUnverifiedPRs() {
-        let app = XCUIApplication(); app.launchArguments = ["--fixture-gitea","--fixture-large-pulls"]
+        let app = XCUIApplication(); app.launchArguments = ["--fixture-gitea","--fixture-large-pulls","--fixture-reset-history"]
         app.launchEnvironment["GITEA_TEST_PREFERENCES"] = "test.ui.paging."+UUID().uuidString
         app.launch()
         app.buttons["todayProjects"].tap()
@@ -32,8 +34,12 @@ final class IssueResolutionUITests: XCTestCase {
         XCTAssertTrue(toggle.waitForExistence(timeout:4))
         if toggle.value as? String == "0" { toggle.coordinate(withNormalizedOffset:CGVector(dx:0.93,dy:0.5)).tap() }
         app.buttons["Uygula"].tap()
+        let coverage = app.staticTexts["todayCoverageLabel"]
+        XCTAssertTrue(coverage.waitForExistence(timeout:10))
+        let compact = XCTAttachment(screenshot:app.screenshot()); compact.name = "compact-today-queue"; compact.lifetime = .keepAlways; add(compact)
+        coverage.tap()
         let more = app.buttons["moreTodayDetails"]
-        XCTAssertTrue(more.waitForExistence(timeout:10))
+        XCTAssertTrue(more.waitForExistence(timeout:3))
         XCTAssertTrue(app.staticTexts["40 yüklenen PR henüz doğrulanmadı. Bu PR’lar hazır veya sağlıklı sayılmıyor."].exists)
         more.tap()
         XCTAssertTrue(app.staticTexts["30 yüklenen PR henüz doğrulanmadı. Bu PR’lar hazır veya sağlıklı sayılmıyor."].waitForExistence(timeout:10))

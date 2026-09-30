@@ -87,7 +87,7 @@ struct TodayView: View {
                 }
             }.padding(.horizontal,22).padding(.top,6).padding(.bottom,30)
         }
-        .background(Color.canvas).navigationTitle("Bugün")
+        .background(Color.canvas).navigationTitle("Bugün").navigationBarTitleDisplayMode(.inline)
         .toolbar { PageTools(appearanceShown:$appearanceShown,ideaShown:$ideaShown) }
         .sheet(isPresented:$appearanceShown) { AppearanceSheet() }
         .sheet(isPresented:$ideaShown) { IdeaSheet() }
@@ -204,7 +204,7 @@ struct ProjectsView: View {
         ScrollView {
             VStack(alignment:.leading,spacing:appearance.layout.density.gap) {
                 DemoCaption()
-                Picker("Proje filtresi",selection:$favoritesOnly) { Text("Tümü").tag(false); Text("Favoriler").tag(true) }.pickerStyle(.segmented).padding(6).glassEffect(.regular,in:RoundedRectangle(cornerRadius:18))
+                Picker("Proje filtresi",selection:$favoritesOnly) { Text("Tümü").tag(false); Text("Favoriler").tag(true) }.pickerStyle(.segmented).padding(.vertical,6)
                 if filtered.isEmpty { ContentUnavailableView.search(text:query) }
                 ForEach(filtered) { project in
                     Surface {
@@ -236,7 +236,7 @@ struct ProjectsView: View {
                     }
                 }
             }.padding(.horizontal,22).padding(.bottom,25)
-        }.background(Color.canvas).navigationTitle("Projeler")
+        }.background(Color.canvas).navigationTitle("Projeler").navigationBarTitleDisplayMode(.inline)
             .searchable(text:$query,prompt:"Proje ara")
             .animation(appearance.animation(reduced:reduced),value:favoritesOnly)
             .toolbar { PageTools(appearanceShown:$appearanceShown,ideaShown:$ideaShown) }

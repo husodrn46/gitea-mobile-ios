@@ -193,7 +193,7 @@ struct InboxView: View {
                     if unreadOnly && workspace.readActivities.count == 3 { ContentUnavailableView("Hepsi tamam",systemImage:"checkmark",description:Text("Okunmamış örnek bildirim kalmadı.")) }
                 }
             }.padding(22)
-        }.background(Color.canvas).navigationTitle("Gelen kutusu")
+        }.background(Color.canvas).navigationTitle("Gelen kutusu").navigationBarTitleDisplayMode(.inline)
         .toolbar { Button("Yeni fikir",systemImage:"plus") { ideaShown = true } }
         .sheet(isPresented:$ideaShown) { IdeaSheet() }
     }
@@ -209,42 +209,38 @@ struct ProfileView: View {
     var body: some View {
         List {
             Section {
-                HStack(spacing:17) {
-                    MarkView(kind:3,size:42).foregroundStyle(appearance.accent(scheme)).frame(width:66,height:66).glassEffect(.regular.tint(appearance.accent(scheme).opacity(0.12)),in:Circle())
+                HStack(spacing:14) {
+                    MarkView(kind:3,size:30).foregroundStyle(appearance.accent(scheme)).frame(width:48,height:48).background(appearance.accent(scheme).opacity(0.10),in:Circle())
                     VStack(alignment:.leading,spacing:5) { Text(workspace.login).font(.title3.bold()); DemoCaption() }
-                }.padding(.vertical,8)
+                }.padding(.vertical,5)
+            }
+            Section("Hesap ve bağlantı") {
+                NavigationLink("Kayıtlı hesaplar") { AccountManagerView() }.accessibilityIdentifier("savedAccounts")
+                Button { connectionShown = true } label: { Label(workspace.live ? "Bağlantıyı yönet" : "Gitea’ya bağlan",systemImage:"link") }.accessibilityIdentifier("connectButton")
+                if workspace.offlineOnly { Button("Canlı bağlantıya geç") { Task { do { try await workspace.reconnect() } catch { self.error = error.localizedDescription } } }.disabled(workspace.busy).accessibilityIdentifier("reconnectLive") }
             }
             Section("Sana göre") {
-                NavigationLink("Kayıtlı hesaplar") { AccountManagerView() }.accessibilityIdentifier("savedAccounts")
                 Button { appearanceShown = true } label: { Label("Kişiselleştir",systemImage:"slider.horizontal.3") }.accessibilityIdentifier("profileAppearance")
                 NavigationLink { PrivacySettingsView() } label: { Label("Gizlilik ve kilit",systemImage:"lock.shield") }.accessibilityIdentifier("privacySettings")
                 NavigationLink { SigningRenewalView() } label: { Label("Kurulum süresi",systemImage:"calendar.badge.clock") }.accessibilityIdentifier("signingSettings")
-                Button { connectionShown = true } label: { Label(workspace.live ? "Bağlantıyı yönet" : "Gitea’ya bağlan",systemImage:"link") }.accessibilityIdentifier("connectButton")
             }
-            Section("Çevrimdışı") {
-                if let saved = workspace.savedIdentity {
-                    Text(saved.origin.host ?? "Sunucu").font(.subheadline)
-                    Text(saved.login).font(.caption).foregroundStyle(.secondary)
-                    Button("Saklanmış kaydı aç") { do { try workspace.openOffline() } catch { self.error = error.localizedDescription } }
-                    Button("Çevrimdışı kayıtları temizle",role:.destructive) { do { try workspace.clearCache() } catch { self.error = error.localizedDescription } }
-                } else { Text("Bağlanıp okuduğun ekranlar, son alınma zamanı ile bu cihazda saklanır.").font(.footnote) }
-                if workspace.offlineOnly {
-                    Button("Canlı bağlantıya geç") { Task { do { try await workspace.reconnect() } catch { self.error = error.localizedDescription } } }.disabled(workspace.busy).accessibilityIdentifier("reconnectLive")
+            Section {
+                DisclosureGroup("Çevrimdışı kayıtlar") {
+                    if let saved = workspace.savedIdentity {
+                        Text("\(saved.login) · \(saved.origin.host ?? "Sunucu")").font(.caption).foregroundStyle(.secondary)
+                        Button("Saklanmış kaydı aç") { do { try workspace.openOffline() } catch { self.error = error.localizedDescription } }
+                        Button("Çevrimdışı kayıtları temizle",role:.destructive) { do { try workspace.clearCache() } catch { self.error = error.localizedDescription } }
+                    } else { Text("Okuduğun ekranlar son alınma zamanı ile cihazda saklanır.").font(.footnote).foregroundStyle(.secondary) }
+                    if let note = workspace.cacheNotice { Text(note).font(.footnote).foregroundStyle(.secondary) }
                 }
-                if let note = workspace.cacheNotice { Text(note).font(.footnote).foregroundStyle(.secondary) }
-            }
-            Section("Bu sürüm") {
-                Text("SwiftUI · iOS Liquid Glass").font(.subheadline)
-                Text("Kişisel iş kuyruğunu ve değişiklikleri izle. Fikirlerini konuya dönüştür, konuşmalara katıl. Gönderimler yalnız açık hareketinle yapılır; gerçek merge yoktur.").font(.footnote).foregroundStyle(.secondary)
-            }
-            if workspace.live {
-                Section {
-                    Button("Örnek ekranlara dön") { workspace.useDemo() }
-                    NavigationLink("Hesapları yönet veya kaldır") { AccountManagerView() }
+                DisclosureGroup("Uygulama hakkında") {
+                    Text("SwiftUI · iOS Liquid Glass").font(.subheadline)
+                    Text("İş kuyruğunu ve değişiklikleri izle. Fikirlerini konuya dönüştür, konuşmalara katıl. Gönderimler yalnız açık hareketinle yapılır; gerçek merge yoktur.").font(.footnote).foregroundStyle(.secondary)
                 }
+                if workspace.live { Button("Örnek ekranlara dön") { workspace.useDemo() } }
             }
             if let error { Section { Text(error).foregroundStyle(.red) } }
-        }.scrollContentBackground(.hidden).background(Color.canvas).navigationTitle("Profil")
+        }.scrollContentBackground(.hidden).background(Color.canvas).navigationTitle("Profil").navigationBarTitleDisplayMode(.inline)
             .toolbar { Button("Yeni fikir",systemImage:"plus") { ideaShown = true } }
             .sheet(isPresented:$ideaShown) { IdeaSheet() }
             .sheet(isPresented:$appearanceShown) { AppearanceSheet() }

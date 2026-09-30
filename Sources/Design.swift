@@ -90,7 +90,7 @@ extension Color {
     }
     static var success: Color { Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red:0.53,green:0.87,blue:0.65,alpha:1) : UIColor(red:0.11,green:0.43,blue:0.23,alpha:1) }) }
     static var waiting: Color { Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red:0.96,green:0.78,blue:0.5,alpha:1) : UIColor(red:0.57,green:0.31,blue:0.04,alpha:1) }) }
-    static var canvas: Color { Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red:0.075,green:0.08,blue:0.095,alpha:1) : UIColor(red:0.955,green:0.953,blue:0.975,alpha:1) }) }
+    static var canvas: Color { Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red:0.075,green:0.08,blue:0.095,alpha:1) : UIColor(red:0.953,green:0.953,blue:0.969,alpha:1) }) }
     static var surface: Color { Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(red:0.125,green:0.13,blue:0.15,alpha:1) : .white }) }
 }
 
@@ -187,5 +187,24 @@ struct ProjectNavigationMotion: ViewModifier {
     @ViewBuilder func body(content: Content) -> some View {
         if enabled { content.navigationTransition(.zoom(sourceID:id,in:namespace)) }
         else { content }
+    }
+}
+
+/// One full-width disclosure target; detail controls stay inside the expanded area.
+struct QuietDisclosureStyle: DisclosureGroupStyle {
+    var animation: Animation? = nil
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment:.leading,spacing:0) {
+            Button {
+                withAnimation(animation) { configuration.isExpanded.toggle() }
+            } label: {
+                HStack(spacing:12) {
+                    configuration.label
+                    Spacer(minLength:4)
+                    Image(systemName:configuration.isExpanded ? "chevron.down" : "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                }.frame(maxWidth:.infinity,minHeight:44,alignment:.leading).contentShape(Rectangle())
+            }.buttonStyle(.plain).accessibilityValue(configuration.isExpanded ? "Açık" : "Kapalı")
+            if configuration.isExpanded { configuration.content }
+        }
     }
 }
